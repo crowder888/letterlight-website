@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Nav from "./components/Nav";
 import AvailabilityChecker from "./components/AvailabilityChecker";
+import ContactForm from "./components/ContactForm";
 
 const steps = [
   {
@@ -364,41 +365,7 @@ export default function Home() {
           </p>
           <AvailabilityChecker />
           <div className="w-full h-px bg-white/10 my-6" />
-          <form className="flex flex-col gap-4 text-left w-full">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <input
-                type="text"
-                placeholder="Your Name"
-                className="bg-white/5 border border-white/10 text-white placeholder:text-white/30 px-4 py-3 text-sm focus:outline-none focus:border-[#C9A96E] transition-colors"
-              />
-              <input
-                type="email"
-                placeholder="Email Address"
-                className="bg-white/5 border border-white/10 text-white placeholder:text-white/30 px-4 py-3 text-sm focus:outline-none focus:border-[#C9A96E] transition-colors"
-              />
-            </div>
-            <input
-              type="text"
-              placeholder="Event Date (e.g. October 11, 2025)"
-              className="bg-white/5 border border-white/10 text-white placeholder:text-white/30 px-4 py-3 text-sm focus:outline-none focus:border-[#C9A96E] transition-colors"
-            />
-            <input
-              type="text"
-              placeholder="Word or phrase (e.g. MR & MRS, LOVE, JOHNSON)"
-              className="bg-white/5 border border-white/10 text-white placeholder:text-white/30 px-4 py-3 text-sm focus:outline-none focus:border-[#C9A96E] transition-colors"
-            />
-            <textarea
-              placeholder="Venue name and city"
-              rows={3}
-              className="bg-white/5 border border-white/10 text-white placeholder:text-white/30 px-4 py-3 text-sm focus:outline-none focus:border-[#C9A96E] transition-colors resize-none"
-            />
-            <button
-              type="submit"
-              className="bg-[#C9A96E] text-white text-xs tracking-widest uppercase px-8 py-4 hover:bg-[#E8D5A3] hover:text-[#1C1C1E] transition-colors mt-2"
-            >
-              Send Inquiry
-            </button>
-          </form>
+          <ContactForm />
         </div>
       </section>
 
