@@ -13,8 +13,13 @@ type Booking = {
   created_at: string;
 };
 
-export default async function AdminPage() {
+export default async function AdminPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>;
+}) {
   const authed = await isAuthenticated();
+  const params = await searchParams;
 
   if (!authed) {
     return (
@@ -31,6 +36,11 @@ export default async function AdminPage() {
             autoFocus
             className="bg-white/5 border border-white/20 px-4 py-3 text-sm focus:outline-none focus:border-[#C9A96E]"
           />
+          {params.error && (
+            <p className="text-rose-400 text-xs text-center">
+              Incorrect password.
+            </p>
+          )}
           <button
             type="submit"
             className="bg-[#C9A96E] text-white text-xs tracking-widest uppercase px-6 py-3 hover:bg-[#E8D5A3] hover:text-[#1C1C1E] transition-colors"
