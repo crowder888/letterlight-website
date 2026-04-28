@@ -62,13 +62,14 @@ export default function Home() {
     <main className="flex flex-col">
       {/* ── HERO ─────────────────────────────────────────────── */}
       <section className="relative min-h-screen flex items-center justify-center bg-[#1C1C1E] overflow-hidden">
-        <Image
-          src="/hero.png"
-          alt="Illuminated marquee letters at a wedding reception"
-          fill
-          className="object-cover object-center"
-          priority
-          sizes="100vw"
+        {/* Hero video — swap back to <Image src="/hero.png" ... /> to revert */}
+        <video
+          src="/ac16bb5972ed11253ec3032edf12daed-5552c0b4-b7a8-49e0-981e-84a8e67c6e81.mp4"
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="absolute inset-0 w-full h-full object-cover object-center"
         />
         <div className="absolute inset-0 bg-[#1C1C1E]/60" />
 
