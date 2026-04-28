@@ -64,7 +64,7 @@ export default async function AdminPage({
 
   return (
     <main className="min-h-screen bg-[#F7F3EE] text-[#1C1C1E] px-6 py-12">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-10">
           <h1 className="text-3xl font-display tracking-wide">
@@ -85,7 +85,10 @@ export default async function AdminPage({
           <h2 className="text-sm tracking-widest uppercase text-[#1C1C1E]/60 mb-4">
             Add Booking
           </h2>
-          <form action={addBooking} className="grid grid-cols-1 sm:grid-cols-5 gap-3">
+          <form
+            action={addBooking}
+            className="grid grid-cols-1 sm:grid-cols-[160px_130px_1fr_2fr_auto] gap-3"
+          >
             <input
               type="date"
               name="event_date"
@@ -110,12 +113,12 @@ export default async function AdminPage({
             <input
               type="text"
               name="notes"
-              placeholder="Notes (venue, word, etc.)"
+              placeholder="Notes (venue, word, contact, etc.)"
               className="border border-black/20 px-3 py-2 text-sm focus:outline-none focus:border-[#C9A96E]"
             />
             <button
               type="submit"
-              className="bg-[#1C1C1E] text-white text-xs tracking-widest uppercase px-4 py-2 hover:bg-[#C9A96E] transition-colors"
+              className="bg-[#1C1C1E] text-white text-xs tracking-widest uppercase px-6 py-2 hover:bg-[#C9A96E] transition-colors"
             >
               Add
             </button>
@@ -154,7 +157,7 @@ function BookingList({ bookings }: { bookings: Booking[] }) {
       {bookings.map((b) => (
         <div
           key={b.id}
-          className="grid grid-cols-1 sm:grid-cols-[120px_100px_1fr_auto] gap-3 items-center px-4 py-3 text-sm"
+          className="grid grid-cols-1 sm:grid-cols-[160px_130px_minmax(180px,1fr)_2fr_auto] gap-4 items-center px-5 py-4 text-sm"
         >
           <div className="font-medium">
             {new Date(b.event_date + "T00:00:00").toLocaleDateString("en-US", {
@@ -164,10 +167,15 @@ function BookingList({ bookings }: { bookings: Booking[] }) {
             })}
           </div>
           <StatusSelect id={b.id} status={b.status} />
-          <div className="text-[#1C1C1E]/70">
-            {b.customer_name && <span className="font-medium text-[#1C1C1E]">{b.customer_name}</span>}
-            {b.customer_name && b.notes && <span className="mx-2">·</span>}
-            {b.notes}
+          <div className="font-medium text-[#1C1C1E] truncate">
+            {b.customer_name || (
+              <span className="text-[#1C1C1E]/30 italic font-normal">
+                No name
+              </span>
+            )}
+          </div>
+          <div className="text-[#1C1C1E]/60 truncate">
+            {b.notes || <span className="text-[#1C1C1E]/30">—</span>}
           </div>
           <form action={deleteBooking}>
             <input type="hidden" name="id" value={b.id} />
