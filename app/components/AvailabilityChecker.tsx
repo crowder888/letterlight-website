@@ -47,15 +47,28 @@ export default function AvailabilityChecker() {
 
       {/* Result */}
       {status === "available" && (
-        <div className="flex flex-col items-center gap-2 animate-in fade-in duration-300">
+        <div className="flex flex-col items-center gap-3 animate-in fade-in duration-300">
           <div className="flex items-center gap-2 text-emerald-400">
             <span className="text-xl">✓</span>
             <span className="text-sm font-light tracking-wide">
               Great news — that date is available!
             </span>
           </div>
+          <button
+            type="button"
+            onClick={() => {
+              window.dispatchEvent(
+                new CustomEvent("letterlight:book-date", { detail: { date } })
+              );
+              const form = document.getElementById("inquiry-form");
+              form?.scrollIntoView({ behavior: "smooth", block: "center" });
+            }}
+            className="bg-[#C9A96E] text-white text-xs tracking-widest uppercase px-8 py-3 hover:bg-[#E8D5A3] hover:text-[#1C1C1E] transition-colors"
+          >
+            Book This Date
+          </button>
           <p className="text-white/40 text-xs">
-            Fill out the form below to reserve it.
+            We'll secure your date and send a contract within a few hours.
           </p>
         </div>
       )}

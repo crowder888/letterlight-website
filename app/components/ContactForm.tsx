@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect, useRef } from "react";
 import { useFormStatus } from "react-dom";
 import { submitInquiry, type ContactState } from "@/app/lib/contactAction";
 
@@ -8,6 +8,22 @@ const initialState: ContactState = { status: "idle" };
 
 export default function ContactForm() {
   const [state, formAction] = useActionState(submitInquiry, initialState);
+  const dateRef = useRef<HTMLInputElement>(null);
+  const nameRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    function handleBookDate(e: Event) {
+      const detail = (e as CustomEvent<{ date: string }>).detail;
+      if (dateRef.current && detail?.date) {
+        dateRef.current.value = detail.date;
+      }
+      // Focus the first empty field so the customer can start typing immediately
+      setTimeout(() => nameRef.current?.focus(), 400);
+    }
+    window.addEventListener("letterlight:book-date", handleBookDate);
+    return () =>
+      window.removeEventListener("letterlight:book-date", handleBookDate);
+  }, []);
 
   if (state.status === "success") {
     return (
@@ -30,9 +46,14 @@ export default function ContactForm() {
   }
 
   return (
-    <form action={formAction} className="flex flex-col gap-4 text-left w-full">
+    <form
+      id="inquiry-form"
+      action={formAction}
+      className="flex flex-col gap-4 text-left w-full"
+    >
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <input
+          ref={nameRef}
           name="name"
           type="text"
           required
@@ -48,6 +69,7 @@ export default function ContactForm() {
         />
       </div>
       <input
+        ref={dateRef}
         name="event_date"
         type="date"
         placeholder="Event Date"

@@ -21,8 +21,8 @@ const steps = [
   },
   {
     number: "04",
-    title: "We Handle the Rest",
-    body: "Deposit secured, contract signed online. We deliver, set up, and strike — you just enjoy the moment.",
+    title: "We Set Up — You Run the Show",
+    body: "We deliver, set up, and walk you (or your DJ, planner, or anyone you choose) through the simple tablet that controls the letters. Saved presets fire with a single tap — no learning curve. Then we leave you to enjoy the night and return after to strike.",
   },
 ];
 
@@ -37,11 +37,15 @@ const faqs = [
   },
   {
     q: "What's included in the rental price?",
-    a: "Everything. Delivery, setup, teardown, and the full evening of the event. No hidden fees. Just show up and enjoy.",
+    a: "Delivery, setup, the tablet that controls the letters, a quick walkthrough at setup, the full evening of the event, and teardown after. No hidden fees.",
+  },
+  {
+    q: "Who operates the lights during the event?",
+    a: "You do — or anyone you choose, like your DJ, planner, or a member of the wedding party. We don't stay at the event. At setup we hand you a tablet pre-loaded with the presets you designed in advance. Each is a one-tap button (e.g. \"First Dance,\" \"Cake Cut\"). We walk you through it and leave you with a printed cheat sheet. It's intentionally simple — anyone can run it.",
   },
   {
     q: "Can I choose my own light effects?",
-    a: "Yes. Our custom preset designer lets you select from a library of effects — from a warm constant glow to animated color washes and sparkles. You can preview everything before the day.",
+    a: "Yes. Our custom preset designer lets you select from a library of effects — from a warm constant glow to animated color washes and sparkles. You can preview everything before the day, name your favorites (\"First Dance,\" \"Send-Off,\" etc.), and they'll be one-tap buttons on the tablet at the event.",
   },
   {
     q: "How tall are the letters?",
@@ -253,7 +257,6 @@ export default function Home() {
                 <span className="font-display text-5xl text-[#1C1C1E] font-light">
                   $750
                 </span>
-                <span className="text-[#1C1C1E]/40 text-sm">– $950</span>
               </div>
               <p className="text-[#1C1C1E]/50 text-xs tracking-widest uppercase">
                 Per weekend
