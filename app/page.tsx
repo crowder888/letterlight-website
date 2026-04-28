@@ -301,8 +301,8 @@ export default function Home() {
               </p>
               <div className="w-full h-px bg-white/10 my-2" />
               <p className="text-sm text-white/70 leading-relaxed">
-                We currently rent the <span className="text-white">MR &amp; MRS</span> set
-                only. We&apos;re actively building out a full alphabet so we can
+                We currently rent the <span className="text-white">MR &amp; MRS</span>
+                {" "}set only. We&apos;re actively building out a full alphabet so we can
                 spell names, phrases, and event-specific words. Tell us the word
                 and date you have in mind and we&apos;ll let you know as soon as
                 it&apos;s available — and quote you then.
