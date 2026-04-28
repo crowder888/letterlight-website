@@ -68,13 +68,17 @@ export default function ContactForm() {
           className="bg-white/5 border border-white/10 text-white placeholder:text-white/30 px-4 py-3 text-sm focus:outline-none focus:border-[#C9A96E] transition-colors"
         />
       </div>
-      <input
-        ref={dateRef}
-        name="event_date"
-        type="date"
-        placeholder="Event Date"
-        className="bg-white/5 border border-white/10 text-white placeholder:text-white/30 px-4 py-3 text-sm focus:outline-none focus:border-[#C9A96E] transition-colors [color-scheme:dark]"
-      />
+      <div className="flex flex-col gap-1">
+        <label className="text-white/40 text-xs tracking-widest uppercase px-1">
+          Event Date
+        </label>
+        <input
+          ref={dateRef}
+          name="event_date"
+          type="date"
+          className="bg-white/5 border border-white/10 text-white px-4 py-3 text-sm focus:outline-none focus:border-[#C9A96E] transition-colors [color-scheme:dark]"
+        />
+      </div>
       <input
         name="word"
         type="text"
