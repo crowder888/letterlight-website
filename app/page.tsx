@@ -33,7 +33,7 @@ const faqs = [
   },
   {
     q: "How far do you travel for delivery?",
-    a: "We're based in Brownsburg, IN and serve the greater Indianapolis metro area. Contact us with your venue address and we'll confirm coverage and any travel fees.",
+    a: "We're based in Brownsburg, IN and serve the greater Indianapolis metro area. Delivery and setup are included within 25 miles of Brownsburg. Beyond 25 miles, a travel fee is added based on distance — we'll quote it when you send us your venue address.",
   },
   {
     q: "What's included in the rental price?",
@@ -266,7 +266,7 @@ export default function Home() {
                 {[
                   "6 illuminated letters",
                   "Custom light effect",
-                  "Delivery & setup",
+                  "Delivery & setup within 25 mi of Brownsburg",
                   "Evening rental",
                   "Teardown included",
                 ].map((item) => (
@@ -316,8 +316,9 @@ export default function Home() {
             </div>
           </div>
 
-          <p className="text-center text-[#1C1C1E]/30 text-xs mt-8 tracking-wide">
-            Prices vary based on word length, travel distance, and event date.
+          <p className="text-center text-[#1C1C1E]/40 text-xs mt-8 tracking-wide">
+            Events more than 25 miles from Brownsburg, IN incur an additional
+            travel fee — quoted with your inquiry.
           </p>
         </div>
       </section>
