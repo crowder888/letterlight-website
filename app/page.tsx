@@ -271,6 +271,11 @@ export default function Home() {
                   </li>
                 ))}
               </ul>
+              <div className="w-full h-px bg-[#1C1C1E]/5 mt-2" />
+              <p className="text-[#1C1C1E]/50 text-xs tracking-[0.25em] uppercase">
+                Check Availability
+              </p>
+              <AvailabilityChecker theme="light" />
             </div>
 
             <div className="bg-[#1C1C1E] p-10 flex flex-col gap-4 relative">
@@ -303,13 +308,6 @@ export default function Home() {
                 Join the Waitlist
               </a>
             </div>
-          </div>
-
-          <div className="mt-12 bg-white border border-[#1C1C1E]/5 p-8 max-w-2xl mx-auto">
-            <p className="text-center text-[#1C1C1E]/50 text-xs tracking-[0.3em] uppercase mb-6">
-              Check MR &amp; MRS Availability
-            </p>
-            <AvailabilityChecker theme="light" />
           </div>
 
           <p className="text-center text-[#1C1C1E]/40 text-xs mt-8 tracking-wide">
