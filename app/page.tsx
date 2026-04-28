@@ -11,8 +11,8 @@ const steps = [
   },
   {
     number: "02",
-    title: "Ask Us About Your Word",
-    body: "Have a specific name or phrase in mind? Reach out and we'll let you know what's possible. Our inventory is growing — more words available all the time.",
+    title: "Pick MR & MRS — or Join the Waitlist",
+    body: "Right now we rent our MR & MRS letter set. We're actively building a full alphabet — if you want a name or custom phrase, tell us your word and event date and we'll add you to the waitlist with future pricing.",
   },
   {
     number: "03",
@@ -28,8 +28,8 @@ const steps = [
 
 const faqs = [
   {
-    q: "What letters do you currently have?",
-    a: "Our current inventory includes M, R, S, and & — perfect for MR & MRS setups. We're actively expanding to a full alphabet. Contact us and we'll let you know if your word is available.",
+    q: "Can I rent letters to spell my name or a custom word?",
+    a: "Not yet — at this time we rent the MR & MRS set only (M, R, &, S). We're actively building a full alphabet so we can spell names and custom phrases. If you have a specific word and event date in mind, contact us to join the waitlist and we'll reach out as soon as it's available with pricing.",
   },
   {
     q: "How far do you travel for delivery?",
@@ -284,38 +284,34 @@ export default function Home() {
               </a>
             </div>
 
-            <div className="bg-[#1C1C1E] p-10 flex flex-col gap-4">
+            <div className="bg-[#1C1C1E] p-10 flex flex-col gap-4 relative">
+              <span className="absolute top-6 right-6 text-[#C9A96E] text-[10px] tracking-[0.2em] uppercase border border-[#C9A96E]/40 px-2 py-1">
+                Coming Soon
+              </span>
               <h3 className="font-display text-3xl text-white font-light">
-                Custom Word
+                Custom Words
               </h3>
               <div className="flex items-baseline gap-2">
                 <span className="font-display text-5xl text-white font-light">
-                  Ask Us
+                  Waitlist
                 </span>
               </div>
               <p className="text-white/40 text-xs tracking-widest uppercase">
-                Pricing varies by length
+                Names · Phrases · Future Dates
               </p>
               <div className="w-full h-px bg-white/10 my-2" />
-              <ul className="flex flex-col gap-2 text-sm text-white/70">
-                {[
-                  "Any name or phrase",
-                  "Real-time inventory check",
-                  "Custom light effect",
-                  "Delivery & setup",
-                  "Teardown included",
-                ].map((item) => (
-                  <li key={item} className="flex items-center gap-2">
-                    <span className="text-[#C9A96E] text-xs">✦</span>
-                    {item}
-                  </li>
-                ))}
-              </ul>
+              <p className="text-sm text-white/70 leading-relaxed">
+                We currently rent the <span className="text-white">MR &amp; MRS</span> set
+                only. We&apos;re actively building out a full alphabet so we can
+                spell names, phrases, and event-specific words. Tell us the word
+                and date you have in mind and we&apos;ll let you know as soon as
+                it&apos;s available — and quote you then.
+              </p>
               <a
                 href="#contact"
                 className="mt-4 border border-[#C9A96E] text-[#C9A96E] text-xs tracking-widest uppercase px-6 py-3 text-center hover:bg-[#C9A96E] hover:text-white transition-colors"
               >
-                Get a Quote
+                Join the Waitlist
               </a>
             </div>
           </div>
