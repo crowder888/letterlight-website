@@ -44,7 +44,7 @@ export default function Nav() {
           FAQ
         </Link>
         <Link
-          href="#contact"
+          href="#pricing"
           className="bg-[#C9A96E] text-white text-sm tracking-widest uppercase px-5 py-2 hover:bg-[#E8D5A3] hover:text-[#1C1C1E] transition-colors"
         >
           Check Availability
@@ -89,7 +89,7 @@ export default function Nav() {
             </Link>
           ))}
           <Link
-            href="#contact"
+            href="#pricing"
             onClick={() => setMenuOpen(false)}
             className="bg-[#C9A96E] text-white text-sm tracking-widest uppercase px-6 py-3"
           >
