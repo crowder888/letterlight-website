@@ -4,11 +4,17 @@ import { useState } from "react";
 
 type Status = "idle" | "loading" | "available" | "unavailable" | "error";
 
-export default function AvailabilityChecker() {
+export default function AvailabilityChecker({ theme = "dark" }: { theme?: "dark" | "light" }) {
   const [date, setDate] = useState("");
   const [status, setStatus] = useState<Status>("idle");
 
   const today = new Date().toISOString().split("T")[0];
+
+  const inputClass = theme === "light"
+    ? "w-full sm:flex-1 bg-[#F7F3EE] border border-[#1C1C1E]/20 text-[#1C1C1E] px-4 py-3 text-sm focus:outline-none focus:border-[#C9A96E] transition-colors"
+    : "w-full sm:flex-1 bg-white/5 border border-white/20 text-white px-4 py-3 text-sm focus:outline-none focus:border-[#C9A96E] transition-colors [color-scheme:dark]";
+
+  const subtextClass = theme === "light" ? "text-[#1C1C1E]/40 text-xs" : "text-white/40 text-xs";
 
   async function checkAvailability() {
     if (!date) return;
@@ -34,7 +40,7 @@ export default function AvailabilityChecker() {
             setDate(e.target.value);
             setStatus("idle");
           }}
-          className="w-full sm:flex-1 bg-white/5 border border-white/20 text-white px-4 py-3 text-sm focus:outline-none focus:border-[#C9A96E] transition-colors [color-scheme:dark]"
+          className={inputClass}
         />
         <button
           onClick={checkAvailability}
@@ -48,10 +54,10 @@ export default function AvailabilityChecker() {
       {/* Result */}
       {status === "available" && (
         <div className="flex flex-col items-center gap-3 animate-in fade-in duration-300">
-          <div className="flex items-center gap-2 text-emerald-400">
+          <div className="flex items-center gap-2 text-emerald-500">
             <span className="text-xl">✓</span>
             <span className="text-sm font-light tracking-wide">
-              Great news — that date is available!
+              Great news — the MR &amp; MRS set is available on that date!
             </span>
           </div>
           <button
@@ -67,28 +73,28 @@ export default function AvailabilityChecker() {
           >
             Book This Date
           </button>
-          <p className="text-white/40 text-xs">
-            We'll secure your date and send a contract within a few hours.
+          <p className={subtextClass}>
+            We&apos;ll secure your date and send a contract within a few hours.
           </p>
         </div>
       )}
 
       {status === "unavailable" && (
         <div className="flex flex-col items-center gap-2 animate-in fade-in duration-300">
-          <div className="flex items-center gap-2 text-rose-400">
+          <div className="flex items-center gap-2 text-rose-500">
             <span className="text-xl">✕</span>
             <span className="text-sm font-light tracking-wide">
-              That date is already booked.
+              The MR &amp; MRS set is already booked for that date.
             </span>
           </div>
-          <p className="text-white/40 text-xs">
+          <p className={subtextClass}>
             Try a nearby date or contact us — we may be able to help.
           </p>
         </div>
       )}
 
       {status === "error" && (
-        <p className="text-white/40 text-xs">
+        <p className={subtextClass}>
           Something went wrong. Please try again or contact us directly.
         </p>
       )}

@@ -271,12 +271,6 @@ export default function Home() {
                   </li>
                 ))}
               </ul>
-              <a
-                href="#contact"
-                className="mt-4 bg-[#C9A96E] text-white text-xs tracking-widest uppercase px-6 py-3 text-center hover:bg-[#1C1C1E] transition-colors"
-              >
-                Check Availability
-              </a>
             </div>
 
             <div className="bg-[#1C1C1E] p-10 flex flex-col gap-4 relative">
@@ -309,6 +303,13 @@ export default function Home() {
                 Join the Waitlist
               </a>
             </div>
+          </div>
+
+          <div className="mt-12 bg-white border border-[#1C1C1E]/5 p-8 max-w-2xl mx-auto">
+            <p className="text-center text-[#1C1C1E]/50 text-xs tracking-[0.3em] uppercase mb-6">
+              Check MR &amp; MRS Availability
+            </p>
+            <AvailabilityChecker theme="light" />
           </div>
 
           <p className="text-center text-[#1C1C1E]/40 text-xs mt-8 tracking-wide">
@@ -355,11 +356,8 @@ export default function Home() {
             Let&apos;s Talk
           </h2>
           <p className="text-white/50 text-sm leading-relaxed mb-8">
-            Start by checking your date, then tell us about your event and
-            we&apos;ll get back to you within a few hours.
+            Tell us about your event and we&apos;ll get back to you within a few hours.
           </p>
-          <AvailabilityChecker />
-          <div className="w-full h-px bg-white/10 my-6" />
           <ContactForm />
         </div>
       </section>
