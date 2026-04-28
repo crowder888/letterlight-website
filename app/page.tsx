@@ -259,7 +259,7 @@ export default function Home() {
                 </span>
               </div>
               <p className="text-[#1C1C1E]/50 text-xs tracking-widest uppercase">
-                Per weekend
+                Per day
               </p>
               <div className="w-full h-px bg-[#1C1C1E]/5 my-2" />
               <ul className="flex flex-col gap-2 text-sm text-[#1C1C1E]/70">
