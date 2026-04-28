@@ -84,7 +84,7 @@ export default function Home() {
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <a
-              href="#contact"
+              href="#pricing"
               className="bg-[#C9A96E] text-white text-sm tracking-widest uppercase px-8 py-4 hover:bg-[#E8D5A3] hover:text-[#1C1C1E] transition-colors"
             >
               Check Availability
@@ -275,7 +275,7 @@ export default function Home() {
               <p className="text-[#1C1C1E]/50 text-xs tracking-[0.25em] uppercase">
                 Check Availability
               </p>
-              <AvailabilityChecker theme="light" />
+              <AvailabilityChecker theme="light" stacked />
             </div>
 
             <div className="bg-[#1C1C1E] p-10 flex flex-col gap-4 relative">

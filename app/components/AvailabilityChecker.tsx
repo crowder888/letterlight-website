@@ -4,15 +4,21 @@ import { useState } from "react";
 
 type Status = "idle" | "loading" | "available" | "unavailable" | "error";
 
-export default function AvailabilityChecker({ theme = "dark" }: { theme?: "dark" | "light" }) {
+export default function AvailabilityChecker({
+  theme = "dark",
+  stacked = false,
+}: {
+  theme?: "dark" | "light";
+  stacked?: boolean;
+}) {
   const [date, setDate] = useState("");
   const [status, setStatus] = useState<Status>("idle");
 
   const today = new Date().toISOString().split("T")[0];
 
   const inputClass = theme === "light"
-    ? "w-full sm:flex-1 bg-[#F7F3EE] border border-[#1C1C1E]/20 text-[#1C1C1E] px-4 py-3 text-sm focus:outline-none focus:border-[#C9A96E] transition-colors"
-    : "w-full sm:flex-1 bg-white/5 border border-white/20 text-white px-4 py-3 text-sm focus:outline-none focus:border-[#C9A96E] transition-colors [color-scheme:dark]";
+    ? "w-full bg-[#F7F3EE] border border-[#1C1C1E]/20 text-[#1C1C1E] px-4 py-3 text-sm focus:outline-none focus:border-[#C9A96E] transition-colors"
+    : "w-full bg-white/5 border border-white/20 text-white px-4 py-3 text-sm focus:outline-none focus:border-[#C9A96E] transition-colors [color-scheme:dark]";
 
   const subtextClass = theme === "light" ? "text-[#1C1C1E]/40 text-xs" : "text-white/40 text-xs";
 
@@ -31,7 +37,7 @@ export default function AvailabilityChecker({ theme = "dark" }: { theme?: "dark"
 
   return (
     <div className="flex flex-col items-center gap-6">
-      <div className="flex flex-col sm:flex-row items-center gap-3 w-full max-w-md">
+      <div className={`flex w-full gap-3 ${stacked ? "flex-col" : "flex-col sm:flex-row max-w-md"}`}>
         <input
           type="date"
           value={date}
@@ -45,7 +51,7 @@ export default function AvailabilityChecker({ theme = "dark" }: { theme?: "dark"
         <button
           onClick={checkAvailability}
           disabled={!date || status === "loading"}
-          className="w-full sm:w-auto bg-[#C9A96E] text-white text-xs tracking-widest uppercase px-6 py-3 hover:bg-[#E8D5A3] hover:text-[#1C1C1E] transition-colors disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap"
+          className="w-full bg-[#C9A96E] text-white text-xs tracking-widest uppercase px-6 py-3 hover:bg-[#E8D5A3] hover:text-[#1C1C1E] transition-colors disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap"
         >
           {status === "loading" ? "Checking..." : "Check Date"}
         </button>
