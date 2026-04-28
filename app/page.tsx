@@ -17,7 +17,7 @@ const steps = [
   {
     number: "03",
     title: "Design Your Look",
-    body: "Choose from warm glows, color washes, twinkles, and more — including effects that pulse and react to the music in real time. Every effect is visible live before you book.",
+    body: "We work with you to choose your effects — warm glows, color washes, twinkles, and music-reactive animations that pulse with the beat. We'll talk through the options and lock them in before your event.",
   },
   {
     number: "04",
@@ -45,7 +45,7 @@ const faqs = [
   },
   {
     q: "Can I choose my own light effects?",
-    a: "Yes. Our custom preset designer lets you select from a library of effects — from a warm constant glow to animated color washes and sparkles. You can preview everything before the day, name your favorites (\"First Dance,\" \"Send-Off,\" etc.), and they'll be one-tap buttons on the tablet at the event.",
+    a: "Yes. We have a growing library of effects — warm constant glows, animated color washes, sparkles, music-reactive animations, and more. We'll walk you through the options and pick what fits your event, then load your favorites onto the tablet as one-tap buttons (\"First Dance,\" \"Send-Off,\" etc.) for the night of.",
   },
   {
     q: "How tall are the letters?",
