@@ -260,7 +260,7 @@ export default function Home() {
               <ul className="flex flex-col gap-2 text-sm text-[#1C1C1E]/70">
                 {[
                   "6 illuminated letters",
-                  "Professionally operated light show",
+                  "Live-controlled LED lighting",
                   "Delivery & setup within 25 mi of Brownsburg",
                   "Evening rental",
                   "Teardown included",

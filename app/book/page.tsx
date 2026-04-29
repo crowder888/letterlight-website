@@ -13,7 +13,7 @@ const SETS: Record<string, {
     price: 750,
     includes: [
       "6 illuminated letters",
-      "Professionally operated light show",
+      "Live-controlled LED lighting",
       "Delivery & setup within 25 mi of Brownsburg",
       "Evening rental",
       "Teardown included",
