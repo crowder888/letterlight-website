@@ -701,11 +701,203 @@ export const effectReading: EffectFn = (pixel, t, p) => {
   ];
 };
 
+/**
+ * Strobe — matches shows.py:Strobe.
+ *
+ *   "Fast random flashes with background glow."
+ *
+ * Per-show params:
+ *   • density   — 0..100 % (how many LEDs flash per frame)
+ *   • bg_glow   — 0..100 % (constant base glow brightness)
+ *   • bg_color  — RGB (the glow color)
+ *
+ * Like Sparkle, runs at fixed 30 Hz refresh independent of rAF.
+ */
+export const effectStrobe: EffectFn = (pixel, t, p) => {
+  const density = paramN(p, "density", 50) / 100;
+  const bgGlow = paramN(p, "bg_glow", 15) / 100;
+  const bgColor = paramC(p, "bg_color", [255, 200, 140]);
+
+  // Background glow base
+  const baseLevel = bgGlow * 0.2 * p.intensity * p.brightness;
+
+  // Per-frame seeded random — same approach as Sparkle
+  const frame = Math.floor(t * 30);
+  const [r1, r2] = frameRand(pixel.gi, frame);
+  // Probability per pixel scales with density and speed
+  const flashProb = (0.01 + density * 0.15) * Math.max(0.1, p.speed);
+
+  if (r1 < flashProb) {
+    // Strobe pop — palette mode picks a random palette color, single uses primary
+    const c =
+      p.usePalette && p.paletteColors.length >= 2
+        ? p.paletteColors[Math.floor(r2 * p.paletteColors.length) % p.paletteColors.length]
+        : p.color;
+    const bright = (0.7 + 0.3 * p.intensity) * p.brightness;
+    return applyBrightness(c, bright);
+  }
+
+  return applyBrightness(bgColor, baseLevel);
+};
+
+/**
+ * Shockwave — matches shows.py:Shockwave.
+ *
+ *   "Expanding ring of light from the center of the letter."
+ *
+ * Bright ring sweeps outward from sign center, optional fading trail
+ * behind it.  Aspect-ratio compensated so the ring stays circular on
+ * the wide marquee canvas.
+ *
+ * Per-show params:
+ *   • ring_width  — 5..100 % (thickness of the bright wavefront)
+ *   • max_radius  — 20..100 % (how far the ring travels)
+ *   • trail_fade  — 0..100 % (brightness of the trail behind the ring)
+ *   • bg_glow     — 0..100 % background glow
+ *   • bg_color    — RGB background color
+ */
+export const effectShockwave: EffectFn = (pixel, t, p) => {
+  const ar = SIGN_ASPECT_RATIO;
+  const scale = Math.max(1.0, (ar + 1.0) / 2.0);
+  const ringW = (0.02 + (paramN(p, "ring_width", 35) / 100) * 0.15) * scale;
+  const maxRadius = (paramN(p, "max_radius", 80) / 100) * scale;
+  const trailFade = paramN(p, "trail_fade", 70) / 100;
+  const bgGlow = paramN(p, "bg_glow", 0) / 100;
+  const bgColor = paramC(p, "bg_color", [255, 200, 140]);
+
+  const cycleTime = Math.max(0.5, 3.0 - p.speed * 2.5);
+  const progress = (t % cycleTime) / cycleTime;
+  const ringRadius = progress * maxRadius;
+
+  // Aspect-compensated distance from center
+  const dx = (pixel.nx - 0.5) * ar;
+  const dy = pixel.ny - 0.5;
+  const dist = Math.sqrt(dx * dx + dy * dy);
+
+  // Pixel's color: palette samples by polar angle, single uses primary
+  let c: RGB;
+  if (p.usePalette && p.paletteColors.length >= 2) {
+    const angle = (Math.atan2(dy, dx) / (2 * Math.PI) + 0.5) % 1;
+    c = paletteAt(p.paletteColors, angle);
+  } else {
+    c = p.color;
+  }
+
+  // Bright ring at the wavefront
+  const ringDist = Math.abs(dist - ringRadius);
+  if (ringDist < ringW) {
+    const alpha = (1 - ringDist / ringW) * p.intensity * p.brightness;
+    return [clamp255(c[0] * alpha), clamp255(c[1] * alpha), clamp255(c[2] * alpha)];
+  }
+
+  // Trail behind the ring
+  if (trailFade > 0 && dist < ringRadius) {
+    const behind = (ringRadius - dist) / Math.max(0.01, ringRadius);
+    const trailBright = (1 - behind) * trailFade * 0.3 * p.intensity * p.brightness;
+    if (trailBright > 0.01) {
+      return [clamp255(c[0] * trailBright), clamp255(c[1] * trailBright), clamp255(c[2] * trailBright)];
+    }
+  }
+
+  // Background glow base
+  if (bgGlow > 0) {
+    const glow = bgGlow * 0.15 * p.intensity * p.brightness;
+    return [clamp255(bgColor[0] * glow), clamp255(bgColor[1] * glow), clamp255(bgColor[2] * glow)];
+  }
+  return [0, 0, 0];
+};
+
+/**
+ * Galaxy — matches shows.py:Galaxy.
+ *
+ *   "Rotating spiral galaxy arms emanating from the center."
+ *
+ * Per-show params:
+ *   • arms       — 1..8 (number of spiral arms)
+ *   • twist      — 10..100 (how tightly the arms curl)
+ *   • core_glow  — 0..100 % brightness of the central glow
+ *   • bg_glow    — 0..100 % background glow
+ *   • bg_color   — RGB background color
+ */
+export const effectGalaxy: EffectFn = (pixel, t, p) => {
+  const numArms = paramN(p, "arms", 3);
+  const twist = 1.0 + (paramN(p, "twist", 50) / 100) * 6.0;
+  const coreGlow = paramN(p, "core_glow", 50) / 100;
+  const bgGlow = paramN(p, "bg_glow", 0) / 100;
+  const bgColor = paramC(p, "bg_color", [255, 200, 140]);
+
+  const ar = SIGN_ASPECT_RATIO;
+  const distScale = 1.0 / Math.max(1.0, (ar + 1.0) / 2.0);
+  const cx = 0.5, cy = 0.5;
+  const rotation = t * (0.2 + p.speed * 0.8);
+  const armWidth = 0.3 + 0.3 * p.intensity;
+  const bright = 0.4 + 0.6 * p.intensity;
+
+  // Aspect-compensated geometry
+  const dx = (pixel.nx - cx) * ar;
+  const dy = pixel.ny - cy;
+  const dxs = dx * distScale;
+  const dys = dy * distScale;
+  const dist = Math.sqrt(dxs * dxs + dys * dys);
+  const angle = Math.atan2(dy, dx);
+
+  const spiralAngle = angle - dist * twist - rotation;
+  const armPhase = ((spiralAngle * numArms) / (2 * Math.PI)) % 1;
+  const armPhaseW = ((armPhase % 1) + 1) % 1;
+  const armDist = 1.0 - Math.abs(armPhaseW - 0.5) * 2.0;
+
+  let alpha = 0;
+  if (armDist > 1.0 - armWidth) {
+    alpha = (armDist - (1.0 - armWidth)) / armWidth;
+  }
+  const centerFade = Math.max(0, 1 - dist * 1.5);
+  const pixelBright = alpha * centerFade * bright;
+
+  // Pixel color: palette samples by dist (with slow drift); single uses primary
+  let baseC: RGB;
+  if (p.usePalette && p.paletteColors.length >= 2) {
+    const palPos = (dist * 2.0 + t * 0.05) % 1;
+    baseC = paletteAt(p.paletteColors, palPos);
+  } else {
+    baseC = p.color;
+  }
+
+  let r = baseC[0] * pixelBright;
+  let g = baseC[1] * pixelBright;
+  let b = baseC[2] * pixelBright;
+
+  // Core glow added on top
+  if (coreGlow > 0) {
+    const coreRadius = 0.05 + coreGlow * 0.2;
+    if (dist < coreRadius) {
+      const coreAmt = (1 - dist / Math.max(0.001, coreRadius)) * coreGlow * 0.5 * p.intensity;
+      r += coreAmt * 255;
+      g += coreAmt * 200;
+      b += coreAmt * 150;
+    }
+  }
+
+  // Apply global brightness, then fall back to bg_glow if pixel is dark
+  r *= p.brightness;
+  g *= p.brightness;
+  b *= p.brightness;
+  if (r + g + b > 1) {
+    return [clamp255(r), clamp255(g), clamp255(b)];
+  }
+  if (bgGlow > 0) {
+    const glow = bgGlow * 0.15 * p.intensity * p.brightness;
+    return [clamp255(bgColor[0] * glow), clamp255(bgColor[1] * glow), clamp255(bgColor[2] * glow)];
+  }
+  return [0, 0, 0];
+};
+
 // ── Registry ──────────────────────────────────────────────────────────────────
 
 import { fireworksEffect } from "./fireworks";
 import { cameraFlashEffect } from "./cameraFlash";
 import { fairyDustEffect } from "./fairyDust";
+import { snowflakesEffect } from "./snowflakes";
+import { meteorsEffect } from "./meteors";
 
 const PIXEL_EFFECTS: Record<string, EffectFn> = {
   solid:         effectSolid,
@@ -723,12 +915,17 @@ const PIXEL_EFFECTS: Record<string, EffectFn> = {
   fly_in:        effectFlyIn,
   reading:       effectReading,
   heartbeat:     effectHeartbeat,
+  strobe:        effectStrobe,
+  shockwave:     effectShockwave,
+  galaxy:        effectGalaxy,
 };
 
 const STATEFUL_EFFECTS: Record<string, StatefulEffect> = {
   fireworks_xl:  fireworksEffect,
   camera_flash:  cameraFlashEffect,
   fairy_dust:    fairyDustEffect,
+  snowflakes:    snowflakesEffect,
+  meteors:       meteorsEffect,
 };
 
 /** Resolve a show id to its full effect (pixel or stateful). */

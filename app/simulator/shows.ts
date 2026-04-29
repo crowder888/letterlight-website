@@ -157,7 +157,7 @@ export const SHOWS: ShowDef[] = [
     ],
   },
   {
-    id: "meteors", label: "Meteors", category: "2D Effects", implemented: false,
+    id: "meteors", label: "Meteors", category: "2D Effects", implemented: true,
     params: [
       { key: "direction", label: "Direction",       min: 0, max: 5,   default: 0 },
       { key: "trail_len", label: "Trail Length",    min: 5, max: 100, default: 40 },
@@ -167,7 +167,7 @@ export const SHOWS: ShowDef[] = [
     ],
   },
   {
-    id: "snowflakes", label: "Snowflakes", category: "2D Effects", implemented: false,
+    id: "snowflakes", label: "Snowflakes", category: "2D Effects", implemented: true,
     params: [
       { key: "flake_size",  label: "Flake Size",      min: 10, max: 100, default: 40 },
       { key: "drift",       label: "Wind Drift",      min: 0,  max: 100, default: 30 },
@@ -178,7 +178,7 @@ export const SHOWS: ShowDef[] = [
     ],
   },
   {
-    id: "shockwave", label: "Shockwave", category: "2D Effects", implemented: false,
+    id: "shockwave", label: "Shockwave", category: "2D Effects", implemented: true,
     params: [
       { key: "ring_width", label: "Ring Width",      min: 5,  max: 100, default: 35 },
       { key: "max_radius", label: "Reach",           min: 20, max: 100, default: 80 },
@@ -197,7 +197,7 @@ export const SHOWS: ShowDef[] = [
     ],
   },
   {
-    id: "galaxy", label: "Galaxy", category: "2D Effects", implemented: false,
+    id: "galaxy", label: "Galaxy", category: "2D Effects", implemented: true,
     params: [
       { key: "arms",      label: "Spiral Arms",     min: 1,  max: 8,   default: 3 },
       { key: "twist",     label: "Twist",           min: 10, max: 100, default: 50 },
@@ -234,7 +234,7 @@ export const SHOWS: ShowDef[] = [
     ],
   },
   {
-    id: "strobe", label: "Strobe", category: "2D Effects", implemented: false,
+    id: "strobe", label: "Strobe", category: "2D Effects", implemented: true,
     params: [
       { key: "density",  label: "Flash Density",   min: 0, max: 100, default: 50 },
       { key: "bg_glow",  label: "Glow Brightness", min: 0, max: 100, default: 15 },
