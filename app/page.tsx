@@ -5,7 +5,12 @@ import AvailabilityChecker from "./components/AvailabilityChecker";
 import ContactForm from "./components/ContactForm";
 import HeroVideo from "./components/HeroVideo";
 
-const steps = [
+const steps: Array<{
+  number: string;
+  title: string;
+  body: string;
+  cta?: { href: string; label: string };
+}> = [
   {
     number: "01",
     title: "Pick Your Date",
@@ -20,6 +25,7 @@ const steps = [
     number: "03",
     title: "Design Your Look",
     body: "We work with you to choose your effects — warm glows, color washes, twinkles, and music-reactive animations that pulse with the beat. We'll talk through the options and lock them in before your event.",
+    cta: { href: "/simulator", label: "Try the Live Preview" },
   },
   {
     number: "04",
@@ -211,7 +217,7 @@ export default function Home() {
             </h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-            {steps.map(({ number, title, body }) => (
+            {steps.map(({ number, title, body, cta }) => (
               <div key={number} className="flex gap-6">
                 <span className="font-display text-5xl text-[#C9A96E]/40 font-light leading-none mt-1 select-none">
                   {number}
@@ -223,6 +229,14 @@ export default function Home() {
                   <p className="text-[#1C1C1E]/60 text-sm leading-relaxed">
                     {body}
                   </p>
+                  {cta && (
+                    <Link
+                      href={cta.href}
+                      className="inline-block mt-4 border border-[#C9A96E] text-[#C9A96E] text-xs tracking-widest uppercase px-5 py-2.5 hover:bg-[#C9A96E] hover:text-white transition-colors"
+                    >
+                      {cta.label} →
+                    </Link>
+                  )}
                 </div>
               </div>
             ))}
