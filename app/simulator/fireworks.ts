@@ -30,6 +30,7 @@
  */
 
 import type { StatefulEffect, EffectParams } from "./effects";
+import { paramN, paramC } from "./effects";
 import { PIXEL_LAYOUT, TOTAL_LEDS } from "./pixelLayout";
 import { type RGB } from "./palettes";
 
@@ -39,12 +40,6 @@ const HIT_RADIUS_SQ = HIT_RADIUS * HIT_RADIUS;
 const PHYSICS_FPS = 40; // Python sim runs at 40 Hz
 const PHYSICS_DT = 1 / PHYSICS_FPS;
 const MAX_PARTICLES_PER_LETTER = 60;
-
-// Defaults from shows.py PARAMS
-const BURST_SIZE = 0.5;   // 50%
-const GRAVITY_RAW = 0.4;  // 40%
-const GRAVITY = GRAVITY_RAW * 0.0015 * PHYSICS_FPS; // per-tick → per-second
-const TRAIL_FADE = 0.7;   // 70% of previous frame retained
 
 interface Particle {
   x: number;
@@ -82,11 +77,12 @@ function rand(): number {
 }
 
 function launchBurst(state: LetterState, t: number, params: EffectParams) {
+  const burstSize = paramN(params, "burst_size", 50) / 100; // 0.05..1
   const cx = 0.2 + rand() * 0.6;
   const cy = 0.4 + rand() * 0.5; // Python convention: 0.4–0.9 from BOTTOM
   // Python: int((10 + burst_size * 35) * intensity), max(5, ...)
-  const numParticles = Math.max(5, Math.floor((10 + BURST_SIZE * 35) * params.intensity));
-  const velocity = 0.01 + BURST_SIZE * 0.03 + params.speed * 0.01;
+  const numParticles = Math.max(5, Math.floor((10 + burstSize * 35) * params.intensity));
+  const velocity = 0.01 + burstSize * 0.03 + params.speed * 0.01;
   // All particles in a burst share a base color_idx so the firework is
   // mostly one color (with small variation per particle).
   const baseColorIdx = rand();
@@ -115,13 +111,16 @@ function physicsStep(state: LetterState, t: number, dt: number, params: EffectPa
     launchBurst(state, t, params);
   }
 
+  // Per-call gravity (param: 0..100 → ~Python's 0.0015 scaled)
+  const gravityPerSec = (paramN(params, "gravity", 40) / 100) * 0.0015 * PHYSICS_FPS;
+
   // Update existing particles
   const survivors: Particle[] = [];
   for (const p of state.particles) {
     // Position and velocity in Python coords (bottom=0, top=1)
     p.x += p.vx;
     p.y += p.vy;
-    p.vy -= GRAVITY * dt; // gravity pulls down (Python: vy decreases)
+    p.vy -= gravityPerSec * dt; // gravity pulls down (Python: vy decreases)
     p.age += dt;
 
     if (p.age >= p.maxAge) continue;
@@ -169,9 +168,29 @@ export const fireworksEffect: StatefulEffect = {
   },
 
   step(buffer, t, dt, params) {
+    const trailFade = paramN(params, "trail_fade", 70) / 100;
+    const bgGlow = paramN(params, "bg_glow", 0) / 100;
+    const bgColor = paramC(params, "bg_color", [255, 255, 255] as RGB);
+
     // ── Trail fade: scale the entire buffer down ─────────────────────────
-    for (let i = 0; i < TOTAL_LEDS * 3; i++) {
-      buffer[i] *= TRAIL_FADE;
+    // ── Background glow floor: enforce min brightness from bg_color ──────
+    const glow = bgGlow * 0.15 * params.intensity * params.brightness;
+    const floorR = bgColor[0] * glow;
+    const floorG = bgColor[1] * glow;
+    const floorB = bgColor[2] * glow;
+    for (let i = 0; i < TOTAL_LEDS; i++) {
+      const off = i * 3;
+      let r = buffer[off] * trailFade;
+      let g = buffer[off + 1] * trailFade;
+      let b = buffer[off + 2] * trailFade;
+      if (bgGlow > 0) {
+        if (r < floorR) r = floorR;
+        if (g < floorG) g = floorG;
+        if (b < floorB) b = floorB;
+      }
+      buffer[off] = r;
+      buffer[off + 1] = g;
+      buffer[off + 2] = b;
     }
 
     // ── Step physics at fixed 40 Hz, regardless of rAF rate ──────────────

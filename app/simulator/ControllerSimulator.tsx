@@ -9,22 +9,31 @@
  *   1. Status bar (logo + letter status)
  *   2. Live LED preview (the canvas)
  *   3. Show grid (categorized buttons)
- *   4. Color / Palette tabs
+ *   4. Color / Palette / Custom Mix tabs
  *   5. Speed / Intensity / Brightness sliders
+ *   6. Per-effect param sliders (only shown if the active show has any)
  *
  * State lives here; child components are pure presentational.
+ *
+ * Per-show params are kept in a Record<showId, Record<key, value>> so
+ * that switching shows preserves what you set on each one (matching the
+ * controller's behavior — its `_show_params` dict is per-show too).
  */
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import LetterCanvas from "./components/LetterCanvas";
 import ShowGrid from "./components/ShowGrid";
 import ColorTabs, { type ColorMode } from "./components/ColorTabs";
 import Sliders from "./components/Sliders";
+import EffectParamsPanel from "./components/EffectParamsPanel";
 import { type Palette, type RGB, COLOR_PRESETS, PALETTES } from "./palettes";
-import { getShow } from "./shows";
+import { getShow, defaultParamValues, type ShowParamValue } from "./shows";
 
 const DEFAULT_COLOR: RGB = COLOR_PRESETS[0].rgb;
 const DEFAULT_PALETTE: Palette = PALETTES[0];
+
+type ShowParamMap = Record<string, ShowParamValue>;
+type AllShowParams = Record<string, ShowParamMap>;
 
 export default function ControllerSimulator() {
   const [activeShow, setActiveShow] = useState<string>("breathe");
@@ -36,6 +45,19 @@ export default function ControllerSimulator() {
   const [intensity, setIntensity] = useState(70);
   const [brightness, setBrightness] = useState(100);
 
+  // Per-show param values, initialized lazily on first activation
+  const [allParams, setAllParams] = useState<AllShowParams>({});
+
+  // Ensure the active show has its default params populated
+  useEffect(() => {
+    setAllParams((prev) => {
+      if (prev[activeShow]) return prev;
+      return { ...prev, [activeShow]: defaultParamValues(activeShow) };
+    });
+  }, [activeShow]);
+
+  const showParams: ShowParamMap = allParams[activeShow] ?? defaultParamValues(activeShow);
+
   const params = useMemo(() => ({
     color,
     paletteColors: palette.colors,
@@ -43,7 +65,8 @@ export default function ControllerSimulator() {
     speed: speed / 100,
     intensity: intensity / 100,
     brightness: brightness / 100,
-  }), [color, palette, colorMode, speed, intensity, brightness]);
+    showParams,
+  }), [color, palette, colorMode, speed, intensity, brightness, showParams]);
 
   const handleSlider = (k: "speed" | "intensity" | "brightness", v: number) => {
     if (k === "speed") setSpeed(v);
@@ -51,7 +74,15 @@ export default function ControllerSimulator() {
     if (k === "brightness") setBrightness(v);
   };
 
-  const showLabel = getShow(activeShow)?.label ?? "Solid";
+  const handleParamChange = (key: string, value: ShowParamValue) => {
+    setAllParams((prev) => ({
+      ...prev,
+      [activeShow]: { ...(prev[activeShow] ?? {}), [key]: value },
+    }));
+  };
+
+  const show = getShow(activeShow);
+  const showLabel = show?.label ?? "Solid";
 
   return (
     <div className="ll-controller">
@@ -80,7 +111,7 @@ export default function ControllerSimulator() {
       {/* Show grid */}
       <ShowGrid activeShow={activeShow} onSelectShow={setActiveShow} />
 
-      {/* Colors / Palettes */}
+      {/* Colors / Palettes / Custom Mix */}
       <ColorTabs
         mode={colorMode}
         color={color}
@@ -90,12 +121,19 @@ export default function ControllerSimulator() {
         onChangePalette={setPalette}
       />
 
-      {/* Sliders */}
+      {/* Universal sliders */}
       <Sliders
         speed={speed}
         intensity={intensity}
         brightness={brightness}
         onChange={handleSlider}
+      />
+
+      {/* Per-effect params (only renders if show has any) */}
+      <EffectParamsPanel
+        show={show}
+        values={showParams}
+        onChange={handleParamChange}
       />
 
       <p className="ll-footer-note">

@@ -28,6 +28,20 @@ export interface EffectParams {
   intensity: number;
   /** 0–1 — dim → full */
   brightness: number;
+  /** Per-show custom params (matches shows.py PARAMS for the active show) */
+  showParams: Record<string, number | RGB>;
+}
+
+/** Read a numeric show param with fallback. */
+export function paramN(p: EffectParams, key: string, fallback: number): number {
+  const v = p.showParams[key];
+  return typeof v === "number" ? v : fallback;
+}
+
+/** Read a color show param with fallback. */
+export function paramC(p: EffectParams, key: string, fallback: RGB): RGB {
+  const v = p.showParams[key];
+  return Array.isArray(v) ? (v as RGB) : fallback;
 }
 
 export type EffectFn = (pixel: NormalizedPixel, t: number, params: EffectParams) => RGB;
@@ -384,7 +398,8 @@ export const effectShimmer: EffectFn = (pixel, t, p) => {
  * pulse_spread defaults to 50 (controller's default).
  */
 export const effectHeartbeat: EffectFn = (pixel, t, p) => {
-  const PULSE_SPREAD = 0.5; // controller default
+  // Per-effect param: pulse_spread is 0..100 in the controller schema
+  const PULSE_SPREAD = paramN(p, "pulse_spread", 50) / 100;
   const cycle = Math.max(0.6, 1.5 - p.speed * 0.9);
   const phase = (t % cycle) / cycle;
 
