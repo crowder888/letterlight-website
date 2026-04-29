@@ -63,7 +63,11 @@ export const fairyDustEffect: StatefulEffect = {
 
   step(buffer, t, _dt, params) {
     const useP = params.usePalette && params.paletteColors.length >= 2;
-    const baseLevel = 0.06 * params.intensity * params.brightness;
+    // On the rig, base=0.06·intensity reads as a clear warm glow because
+    // each physical LED still emits visible light at low duty cycles.  On
+    // a screen, that maps to nearly-black pixels.  Bump the base so the
+    // simulator matches the perceptual look of the actual letters.
+    const baseLevel = (0.1 + 0.15 * params.intensity) * params.brightness;
 
     // ── Paint the dim ambient base across all LEDs ─────────────────────
     if (useP) {
