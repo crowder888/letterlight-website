@@ -801,7 +801,7 @@ export const effectShockwave: EffectFn = (pixel, t, p) => {
 
   // Background glow base
   if (bgGlow > 0) {
-    const glow = bgGlow * 0.3 * p.intensity * p.brightness;
+    const glow = bgGlow * 0.75 * p.intensity * p.brightness;
     return [clamp255(bgColor[0] * glow), clamp255(bgColor[1] * glow), clamp255(bgColor[2] * glow)];
   }
   return [0, 0, 0];
@@ -885,7 +885,7 @@ export const effectGalaxy: EffectFn = (pixel, t, p) => {
     return [clamp255(r), clamp255(g), clamp255(b)];
   }
   if (bgGlow > 0) {
-    const glow = bgGlow * 0.3 * p.intensity * p.brightness;
+    const glow = bgGlow * 0.75 * p.intensity * p.brightness;
     return [clamp255(bgColor[0] * glow), clamp255(bgColor[1] * glow), clamp255(bgColor[2] * glow)];
   }
   return [0, 0, 0];
@@ -922,7 +922,7 @@ export const effectCircles: EffectFn = (pixel, t, p) => {
   wave = Math.max(0, (wave - (1 - thickness)) / thickness);
 
   // Background glow (always present as the floor)
-  const bgLevel = bgGlow * 0.3 * p.intensity * p.brightness;
+  const bgLevel = bgGlow * 0.75 * p.intensity * p.brightness;
   const bgR = bgColor[0] * bgLevel;
   const bgG = bgColor[1] * bgLevel;
   const bgB = bgColor[2] * bgLevel;
@@ -1069,7 +1069,7 @@ export const effectScanner: EffectFn = (pixel, t, p) => {
 
   // Background glow
   if (bgGlow > 0) {
-    const glow = bgGlow * 0.3 * p.intensity * p.brightness;
+    const glow = bgGlow * 0.75 * p.intensity * p.brightness;
     return [clamp255(bgColor[0] * glow), clamp255(bgColor[1] * glow), clamp255(bgColor[2] * glow)];
   }
   return [0, 0, 0];
