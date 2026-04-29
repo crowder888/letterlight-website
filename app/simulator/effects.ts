@@ -756,7 +756,7 @@ export const effectStrobe: EffectFn = (pixel, t, p) => {
   const bgColor = paramC(p, "bg_color", [255, 200, 140]);
 
   // Background glow base
-  const baseLevel = bgGlow * 0.2 * p.intensity * p.brightness;
+  const baseLevel = bgGlow * 0.75 * p.intensity * p.brightness;
 
   // Per-frame seeded random — same approach as Sparkle
   const frame = Math.floor(t * 30);
