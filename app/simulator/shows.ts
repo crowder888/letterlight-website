@@ -101,14 +101,14 @@ export const SHOWS: ShowDef[] = [
   { id: "rainbow",  label: "Rainbow",  category: "Waves & Motion", implemented: true },
   { id: "gradient", label: "Gradient", category: "Waves & Motion", implemented: true },
   {
-    id: "color_wash", label: "Color Wash", category: "Waves & Motion", implemented: false,
+    id: "color_wash", label: "Color Wash", category: "Waves & Motion", implemented: true,
     params: [
       { key: "edge_fade",     label: "Edge Fade",     min: 0, max: 100, default: 50 },
       { key: "vertical_bias", label: "Vertical Bias", min: 0, max: 100, default: 50 },
     ],
   },
   {
-    id: "spirals", label: "Spirals", category: "Waves & Motion", implemented: false,
+    id: "spirals", label: "Spirals", category: "Waves & Motion", implemented: true,
     params: [
       { key: "band_count", label: "Band Count",  min: 1,  max: 10,  default: 4 },
       { key: "twist",      label: "Twist Angle", min: 0,  max: 100, default: 50 },
@@ -116,14 +116,14 @@ export const SHOWS: ShowDef[] = [
     ],
   },
   {
-    id: "curtain", label: "Curtain", category: "Waves & Motion", implemented: false,
+    id: "curtain", label: "Curtain", category: "Waves & Motion", implemented: true,
     params: [
       { key: "swag",      label: "Swag / Drape",   min: 0,  max: 100, default: 40 },
       { key: "edge_soft", label: "Edge Softness",  min: 10, max: 100, default: 50 },
     ],
   },
   {
-    id: "scanner", label: "Scanner", category: "Waves & Motion", implemented: false,
+    id: "scanner", label: "Scanner", category: "Waves & Motion", implemented: true,
     params: [
       { key: "bar_width", label: "Bar Width",       min: 5, max: 100, default: 30 },
       { key: "trail_len", label: "Trail Length",    min: 0, max: 100, default: 60 },

@@ -1022,6 +1022,211 @@ export const effectMarquee: EffectFn = (pixel, t, p) => {
   return applyBrightness(c, bright * p.brightness);
 };
 
+/**
+ * Scanner — matches shows.py:Scanner.
+ *
+ *   "KITT/Cylon-style scanning bar that sweeps back and forth."
+ *
+ * Per-show params:
+ *   • bar_width  — 5..100 % width of the bright bar
+ *   • trail_len  — 0..100 % length of the dim trail behind the bar
+ *   • bg_glow    — 0..100 % background glow brightness
+ *   • bg_color   — RGB background color
+ */
+export const effectScanner: EffectFn = (pixel, t, p) => {
+  const barWidth = 0.03 + (paramN(p, "bar_width", 30) / 100) * 0.2;
+  const trailPct = paramN(p, "trail_len", 60) / 100;
+  const bgGlow = paramN(p, "bg_glow", 0) / 100;
+  const bgColor = paramC(p, "bg_color", [255, 200, 140]);
+
+  const sweepSpeed = 0.2 + p.speed * 0.8;
+  const phase = (t * sweepSpeed) % 2.0;
+  const pos = phase < 1.0 ? phase : 2.0 - phase; // ping-pong
+  const bright = 0.5 + 0.5 * p.intensity;
+
+  const dist = Math.abs(pixel.nx - pos);
+
+  // Pixel color (palette samples by global x)
+  const c =
+    p.usePalette && p.paletteColors.length >= 2
+      ? paletteAt(p.paletteColors, pixel.nx)
+      : p.color;
+
+  if (dist < barWidth) {
+    const alpha = (1 - dist / barWidth) * bright * p.brightness;
+    return [clamp255(c[0] * alpha), clamp255(c[1] * alpha), clamp255(c[2] * alpha)];
+  }
+
+  // Trail behind the bar (symmetric in front + behind for ping-pong feel)
+  if (trailPct > 0) {
+    const trailWidth = barWidth + trailPct * 0.3;
+    if (dist < trailWidth) {
+      let trailAlpha = 1 - (dist - barWidth) / (trailWidth - barWidth);
+      trailAlpha = trailAlpha * trailAlpha * bright * 0.4 * p.brightness;
+      return [clamp255(c[0] * trailAlpha), clamp255(c[1] * trailAlpha), clamp255(c[2] * trailAlpha)];
+    }
+  }
+
+  // Background glow
+  if (bgGlow > 0) {
+    const glow = bgGlow * 0.15 * p.intensity * p.brightness;
+    return [clamp255(bgColor[0] * glow), clamp255(bgColor[1] * glow), clamp255(bgColor[2] * glow)];
+  }
+  return [0, 0, 0];
+};
+
+/**
+ * Spirals — matches shows.py:Spirals.
+ *
+ *   "Rotating spiral bands that wrap across the letter shape."
+ *
+ * Per-show params:
+ *   • band_count — 1..10  (number of spiral bands)
+ *   • twist      — 0..100 (how much the bands diagonal-shift across Y)
+ *   • thickness  — 10..100 (how much of each sine band is visible)
+ */
+export const effectSpirals: EffectFn = (pixel, t, p) => {
+  const rotationSpeed = 0.2 + p.speed * 1.5;
+  const spiralCount = paramN(p, "band_count", 4);
+  const twistFactor = paramN(p, "twist", 50) / 100;
+  const thickness = (paramN(p, "thickness", 50) / 100) * 0.6 + 0.1;
+  const bright = 0.4 + 0.6 * p.intensity;
+
+  // Match controller's coord convention (bottom=0, top=1).  My ny is top=0 → flip.
+  const x = pixel.nx;
+  const y = 1 - pixel.ny;
+
+  const band =
+    (x * spiralCount + y * spiralCount * twistFactor * 1.4 + t * rotationSpeed) % 1.0;
+  const bandW = ((band % 1) + 1) % 1;
+  const wave = (Math.sin(bandW * 2 * Math.PI) + 1) / 2;
+  const alpha = Math.max(0, Math.min(1, (wave - (1 - thickness)) / thickness));
+
+  const c =
+    p.usePalette && p.paletteColors.length >= 2
+      ? paletteAt(p.paletteColors, bandW)
+      : p.color;
+  const lvl = alpha * bright * p.brightness;
+  return [clamp255(c[0] * lvl), clamp255(c[1] * lvl), clamp255(c[2] * lvl)];
+};
+
+/**
+ * Color Wash — matches shows.py:ColorWash.
+ *
+ *   "Smooth palette cycling with horizontal and vertical fades."
+ *
+ * Whole sign cycles through a palette (or hue-shifts a single color)
+ * over time, with optional darker edges and a bottom-heavy bias.
+ *
+ * Per-show params:
+ *   • edge_fade     — 0..100 (0 = uniform, 100 = heavy edge darkening)
+ *   • vertical_bias — 0..100 (0 = uniform, 100 = top fades to dark)
+ */
+function rgbToHsv(rgb: RGB): [number, number, number] {
+  const r = rgb[0] / 255, g = rgb[1] / 255, b = rgb[2] / 255;
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const v = max;
+  const d = max - min;
+  const s = max === 0 ? 0 : d / max;
+  let h = 0;
+  if (d !== 0) {
+    if (max === r) h = (g - b) / d + (g < b ? 6 : 0);
+    else if (max === g) h = (b - r) / d + 2;
+    else h = (r - g) / d + 4;
+    h /= 6;
+  }
+  return [h, s, v];
+}
+
+function hsvToRgb(h: number, s: number, v: number): RGB {
+  const i = Math.floor(h * 6);
+  const f = h * 6 - i;
+  const pp = v * (1 - s);
+  const q = v * (1 - f * s);
+  const tt = v * (1 - (1 - f) * s);
+  let r = 0, g = 0, b = 0;
+  switch (i % 6) {
+    case 0: r = v;  g = tt; b = pp; break;
+    case 1: r = q;  g = v;  b = pp; break;
+    case 2: r = pp; g = v;  b = tt; break;
+    case 3: r = pp; g = q;  b = v;  break;
+    case 4: r = tt; g = pp; b = v;  break;
+    case 5: r = v;  g = pp; b = q;  break;
+  }
+  return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
+}
+
+export const effectColorWash: EffectFn = (pixel, t, p) => {
+  const cycleSpeed = 0.1 + p.speed * 0.5;
+  const bright = 0.3 + 0.7 * p.intensity;
+  const edgeFade = (paramN(p, "edge_fade", 50) / 100) * 2;
+  const vBias = paramN(p, "vertical_bias", 50) / 100;
+
+  const x = pixel.nx;
+  // Match controller's bottom=0/top=1 convention: their y = 1 - my_ny
+  const ctrlY = 1 - pixel.ny;
+
+  const hFade = 1 - Math.abs(x - 0.5) * edgeFade;
+  const vFade = 1 - vBias * ctrlY;
+  const fade = Math.max(0, Math.min(1, hFade * Math.max(0, vFade)));
+
+  if (p.usePalette && p.paletteColors.length >= 2) {
+    const pos = (t * cycleSpeed) % 1.0;
+    const c = paletteAt(p.paletteColors, pos);
+    const lvl = fade * bright * p.brightness;
+    return [clamp255(c[0] * lvl), clamp255(c[1] * lvl), clamp255(c[2] * lvl)];
+  }
+
+  // Single color: gentle hue oscillation (controller uses HSV here)
+  const shift = Math.sin(t * cycleSpeed * 2 * Math.PI) * 0.1;
+  const [h, s, v] = rgbToHsv(p.color);
+  const newRgb = hsvToRgb((h + shift + 1) % 1, s, v * fade * bright * p.brightness);
+  return newRgb;
+};
+
+/**
+ * Curtain — matches shows.py:Curtain.
+ *
+ *   "Color reveal that opens/closes like a curtain from the edges."
+ *
+ * Sign reveals from the center outward (or closes from edges inward),
+ * with a draped "swag" shape — bottom of the curtain is more revealed
+ * than the top, like real fabric drapery.
+ *
+ * Per-show params:
+ *   • swag      — 0..100 % how much the bottom hangs lower (drape effect)
+ *   • edge_soft — 10..100 (1 = sharp curtain edge, 100 = soft fade)
+ */
+export const effectCurtain: EffectFn = (pixel, t, p) => {
+  const swagAmount = (paramN(p, "swag", 40) / 100) * 0.4;
+  const edgeSharpness = 1 + (paramN(p, "edge_soft", 50) / 100) * 9.0;
+  const bright = 0.4 + 0.6 * p.intensity;
+
+  const cycleTime = Math.max(1.0, 4.0 - p.speed * 3.0);
+  const progress = (t % cycleTime) / cycleTime;
+  const reveal = progress < 0.5 ? progress * 2.0 : 2.0 - progress * 2.0;
+
+  const x = pixel.nx;
+  // Controller uses (1 - y)² where y is bottom=0/top=1.  Our ny is top=0/bottom=1.
+  // So (1 - ctrl_y)² = (1 - (1 - ny))² = ny².  More swag at the bottom of letters.
+  const yForSwag = pixel.ny;
+
+  const distFromCenter = Math.abs(x - 0.5) * 2;
+  const swagOffset = swagAmount * yForSwag * yForSwag;
+  const threshold = reveal + swagOffset;
+
+  if (distFromCenter >= threshold) return [0, 0, 0];
+
+  const alpha = Math.min(1, (threshold - distFromCenter) * edgeSharpness);
+  const c =
+    p.usePalette && p.paletteColors.length >= 2
+      ? paletteAt(p.paletteColors, (x + t * 0.05) % 1)
+      : p.color;
+  const lvl = alpha * bright * p.brightness;
+  return [clamp255(c[0] * lvl), clamp255(c[1] * lvl), clamp255(c[2] * lvl)];
+};
+
 // ── Registry ──────────────────────────────────────────────────────────────────
 
 import { fireworksEffect } from "./fireworks";
@@ -1052,6 +1257,10 @@ const PIXEL_EFFECTS: Record<string, EffectFn> = {
   galaxy:        effectGalaxy,
   circles:       effectCircles,
   marquee:       effectMarquee,
+  scanner:       effectScanner,
+  spirals:       effectSpirals,
+  color_wash:    effectColorWash,
+  curtain:       effectCurtain,
 };
 
 const STATEFUL_EFFECTS: Record<string, StatefulEffect> = {
