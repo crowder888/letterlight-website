@@ -1,17 +1,19 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import LetterSimulator from "@/app/components/simulator/LetterSimulator";
+import ControllerSimulator from "./ControllerSimulator";
+import "./simulator.css";
 
 export const metadata: Metadata = {
-  title: "LED Simulator — Letterlight Co.",
-  description: "Preview live LED lighting effects for the MR & MRS marquee letter set.",
+  title: "Live Controller Preview — Letterlight Co.",
+  description:
+    "Try the actual MRC Marquee controller our team uses at your event. Tap shows, pick colors, and adjust the sliders to design your wedding lighting in real time.",
   robots: { index: false },
 };
 
 export default function SimulatorPage() {
   return (
-    <main className="min-h-screen bg-[#1C1C1E]">
-      {/* Header */}
+    <main className="min-h-screen" style={{ background: "#080812" }}>
+      {/* Top nav (uses Letterlight site styling) */}
       <header className="px-6 py-5 flex items-center justify-between border-b border-white/5">
         <Link href="/" className="text-white">
           <span className="font-display text-2xl font-light tracking-widest uppercase">
@@ -29,31 +31,22 @@ export default function SimulatorPage() {
         </Link>
       </header>
 
-      {/* Content */}
-      <div className="max-w-5xl mx-auto px-6 py-16">
-        <div className="mb-10">
-          <p className="text-[#C9A96E] text-xs tracking-[0.4em] uppercase mb-3">
-            Live Preview
-          </p>
-          <h1 className="font-display text-5xl text-white font-light">
-            LED Effects
-          </h1>
-          <p className="text-white/50 text-sm mt-4 max-w-xl leading-relaxed">
-            Our letters run live-controlled LED lighting — choose your colors and
-            effects for the night. Here&apos;s what it actually looks like.
-          </p>
-        </div>
-
-        <LetterSimulator />
-
-        <div className="mt-12 border-t border-white/10 pt-8">
-          <p className="text-white/30 text-xs leading-relaxed max-w-lg">
-            Every effect is controlled live at your event — we can switch colors
-            and patterns on the fly from our controller. The effects above are a
-            selection of what&apos;s available.
-          </p>
-        </div>
+      {/* Intro */}
+      <div className="max-w-3xl mx-auto px-6 pt-12 pb-6 text-center">
+        <p className="text-[#C9A96E] text-xs tracking-[0.4em] uppercase mb-3">
+          Live Controller Preview
+        </p>
+        <h1 className="font-display text-4xl md:text-5xl text-white font-light mb-4">
+          Design Your Lighting
+        </h1>
+        <p className="text-white/50 text-sm leading-relaxed max-w-lg mx-auto">
+          This is the actual controller we operate at your event — same shows, same
+          colors, same sliders.  Tap around and design the look for your night.
+        </p>
       </div>
+
+      {/* The controller */}
+      <ControllerSimulator />
     </main>
   );
 }
