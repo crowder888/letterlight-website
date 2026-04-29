@@ -1227,6 +1227,110 @@ export const effectCurtain: EffectFn = (pixel, t, p) => {
   return [clamp255(c[0] * lvl), clamp255(c[1] * lvl), clamp255(c[2] * lvl)];
 };
 
+/**
+ * Butterfly — matches shows.py:Butterfly.
+ *
+ *   "10 styles of mathematical patterns and plasma effects mapped
+ *    through rainbow or palette colors." (xLights port)
+ *
+ * Per-show params:
+ *   • style  — 1..10 (Style 1: classic butterfly wings; 2: pulsing
+ *              rings; 3: sinusoidal grid; 4: wrapping butterfly;
+ *              5: scaled-frequency butterfly; 6–10: plasma variants)
+ *   • chunks — 1..10 (banding/posterization)
+ *   • skip   — 2..10 (which chunk levels are dimmed to black)
+ *
+ * The controller maps normalized 0–1 coords onto a virtual 10–50 grid;
+ * we use 20×20 for a nicer LED-density feel.
+ */
+const BFLY_BUF_W = 20;
+const BFLY_BUF_H = 20;
+
+export const effectButterfly: EffectFn = (pixel, t, p) => {
+  const style = paramN(p, "style", 1);
+  const chunks = Math.max(1, paramN(p, "chunks", 1));
+  const skip = Math.max(2, paramN(p, "skip", 2));
+
+  const bflySpeed = p.speed * 100;
+  const curState = Math.floor(t * 40 * bflySpeed * 25 / 50);
+  const offset = curState / 200;
+  const PI2 = Math.PI * 2;
+  const sz = BFLY_BUF_H + BFLY_BUF_W;
+
+  // Match controller's bottom=0/top=1 convention so the pattern reads
+  // the same way as on the rig
+  const x = pixel.nx * BFLY_BUF_W;
+  const y = (1 - pixel.ny) * BFLY_BUF_H;
+
+  let h = 0;
+  if (style === 1) {
+    const x2 = x * x;
+    const y2 = y * y;
+    const nn = Math.abs((x2 - y2) * Math.sin(offset + (x + y) * PI2 / sz));
+    const d = x2 + y2;
+    h = d > 0.001 ? Math.min(1, nn / d) : 0;
+  } else if (style === 2) {
+    const maxFrame = BFLY_BUF_H * 2;
+    const frame = (BFLY_BUF_H * Math.floor(curState / 200)) % maxFrame;
+    const f = frame < BFLY_BUF_H ? frame + 1 : maxFrame - frame;
+    const x1 = (x - BFLY_BUF_W / 2) / Math.max(0.1, f);
+    const y1 = (y - BFLY_BUF_H / 2) / Math.max(0.1, f);
+    h = Math.sqrt(x1 * x1 + y1 * y1) % 1;
+  } else if (style === 3) {
+    const maxFrame = BFLY_BUF_H * 2;
+    const frame = (BFLY_BUF_H * Math.floor(curState / 200)) % maxFrame;
+    let f = frame < maxFrame / 2 ? frame + 1 : maxFrame - frame;
+    f = f * 0.1 + BFLY_BUF_H / 60;
+    const x1 = (x - BFLY_BUF_W / 2) / Math.max(0.1, f);
+    const y1 = (y - BFLY_BUF_H / 2) / Math.max(0.1, f);
+    h = (Math.sin(x1) * Math.cos(y1) + 1) / 2;
+  } else if (style === 4) {
+    const nn = (x * x - y * y) * Math.sin(offset + (x + y) * PI2 / sz);
+    const d = x * x + y * y;
+    let raw = d > 0.001 ? nn / d : 0;
+    raw = raw - Math.floor(raw);
+    if (raw < 0) raw = 1 + raw;
+    h = raw;
+  } else if (style === 5) {
+    const nn = Math.abs((x * x - y * y) * Math.sin(offset + (x + y) * PI2 / Math.max(1, BFLY_BUF_H * BFLY_BUF_W)));
+    const d = x * x + y * y;
+    h = d > 0.001 ? Math.min(1, nn / d) : 0;
+  } else {
+    // Plasma styles 6–10
+    const speedPlasma = (101 - bflySpeed) * (style === 10 ? 3 : 5);
+    const time = (t * 40 + 1) / Math.max(0.1, speedPlasma);
+    const rx = x / BFLY_BUF_W - 0.5;
+    const ry = y / BFLY_BUF_H - 0.5;
+
+    let v = Math.sin(rx * 10 + time);
+    v += Math.sin(10 * (rx * Math.sin(time / 2) + ry * Math.cos(time / 3)) + time);
+    const cx = rx + 0.5 * Math.sin(time / 5);
+    const cy = ry + 0.5 * Math.cos(time / 3);
+    v += Math.sin(Math.sqrt(100 * (cx * cx + cy * cy) + 1 + time));
+    v += Math.sin(rx + time);
+    v += Math.sin((ry + time) / 2);
+    v += Math.sin((rx + ry + time) / 2);
+    v += Math.sin(Math.sqrt(rx * rx + ry * ry + 1) + time);
+    v = v / 2;
+    h = (Math.sin(v * chunks * Math.PI) + 1) / 2;
+  }
+
+  // Chunks/skip posterization filter
+  if (chunks > 1 && Math.floor(h * chunks) % skip === 0) return [0, 0, 0];
+
+  // Color mapping
+  if (p.usePalette && p.paletteColors.length >= 2) {
+    const c = paletteAt(p.paletteColors, h);
+    return [
+      clamp255(c[0] * p.brightness),
+      clamp255(c[1] * p.brightness),
+      clamp255(c[2] * p.brightness),
+    ];
+  }
+  // Single color: modulate brightness by h
+  return applyBrightness(p.color, h * p.brightness);
+};
+
 // ── Registry ──────────────────────────────────────────────────────────────────
 
 import { fireworksEffect } from "./fireworks";
@@ -1235,6 +1339,8 @@ import { fairyDustEffect } from "./fairyDust";
 import { snowflakesEffect } from "./snowflakes";
 import { meteorsEffect } from "./meteors";
 import { fireEffect } from "./fire";
+import { shapeEffect } from "./shape";
+import { candleEffect } from "./candle";
 
 const PIXEL_EFFECTS: Record<string, EffectFn> = {
   solid:         effectSolid,
@@ -1261,6 +1367,7 @@ const PIXEL_EFFECTS: Record<string, EffectFn> = {
   spirals:       effectSpirals,
   color_wash:    effectColorWash,
   curtain:       effectCurtain,
+  butterfly:     effectButterfly,
 };
 
 const STATEFUL_EFFECTS: Record<string, StatefulEffect> = {
@@ -1270,6 +1377,8 @@ const STATEFUL_EFFECTS: Record<string, StatefulEffect> = {
   snowflakes:    snowflakesEffect,
   meteors:       meteorsEffect,
   fire:          fireEffect,
+  shape:         shapeEffect,
+  candle_xl:     candleEffect,
 };
 
 /** Resolve a show id to its full effect (pixel or stateful). */

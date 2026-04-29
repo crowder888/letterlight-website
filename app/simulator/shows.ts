@@ -207,7 +207,7 @@ export const SHOWS: ShowDef[] = [
     ],
   },
   {
-    id: "butterfly", label: "Butterfly", category: "2D Effects", implemented: false,
+    id: "butterfly", label: "Butterfly", category: "2D Effects", implemented: true,
     params: [
       { key: "style",  label: "Style",  min: 1, max: 10, default: 1 },
       { key: "chunks", label: "Chunks", min: 1, max: 10, default: 1 },
@@ -215,7 +215,7 @@ export const SHOWS: ShowDef[] = [
     ],
   },
   {
-    id: "shape", label: "Shapes", category: "2D Effects", implemented: false,
+    id: "shape", label: "Shapes", category: "2D Effects", implemented: true,
     params: [
       { key: "shape_type", label: "Shape",           min: 0, max: 7,   default: 0 },
       { key: "count",      label: "Count",           min: 1, max: 20,  default: 5 },
@@ -226,7 +226,7 @@ export const SHOWS: ShowDef[] = [
     ],
   },
   {
-    id: "candle_xl", label: "Candle", category: "2D Effects", implemented: false,
+    id: "candle_xl", label: "Candle", category: "2D Effects", implemented: true,
     params: [
       { key: "wind",    label: "Wind Strength",  min: 0,  max: 100, default: 40 },
       { key: "flicker", label: "Flicker Speed",  min: 10, max: 100, default: 60 },
