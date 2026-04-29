@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import Nav from "./components/Nav";
 import AvailabilityChecker from "./components/AvailabilityChecker";
 import ContactForm from "./components/ContactForm";
@@ -301,12 +302,12 @@ export default function Home() {
                 and date you have in mind and we&apos;ll let you know as soon as
                 it&apos;s available — and quote you then.
               </p>
-              <a
-                href="#contact"
+              <Link
+                href="/waitlist"
                 className="mt-4 border border-[#C9A96E] text-[#C9A96E] text-xs tracking-widest uppercase px-6 py-3 text-center hover:bg-[#C9A96E] hover:text-white transition-colors"
               >
                 Join the Waitlist
-              </a>
+              </Link>
             </div>
           </div>
 
