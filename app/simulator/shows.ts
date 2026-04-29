@@ -29,22 +29,22 @@ export const SHOWS: ShowDef[] = [
   { id: "fly_in",         label: "Fly In",        category: "Essentials", implemented: false },
   { id: "reading",        label: "Reading",       category: "Essentials", implemented: false },
   { id: "camera_flash",   label: "Camera Flash",  category: "Essentials", implemented: false },
-  { id: "pulse",          label: "Pulse",         category: "Essentials", implemented: false },
+  { id: "pulse",          label: "Pulse",         category: "Essentials", implemented: true },
   { id: "breathe",        label: "Breathe",       category: "Essentials", implemented: true },
   { id: "sparkle",        label: "Sparkle",       category: "Essentials", implemented: true },
-  { id: "shimmer",        label: "Shimmer",       category: "Essentials", implemented: false },
-  { id: "twinkle",        label: "Twinkle",       category: "Essentials", implemented: false },
+  { id: "shimmer",        label: "Shimmer",       category: "Essentials", implemented: true },
+  { id: "twinkle",        label: "Twinkle",       category: "Essentials", implemented: true },
   { id: "fairy_dust",     label: "Fairy Dust",    category: "Essentials", implemented: false },
 
   // ── Waves & Motion ──────────────────────────────────────────────────────
   { id: "wave",           label: "Wave",          category: "Waves & Motion", implemented: true },
   { id: "rainbow",        label: "Rainbow",       category: "Waves & Motion", implemented: true },
-  { id: "gradient",       label: "Gradient",      category: "Waves & Motion", implemented: false },
+  { id: "gradient",       label: "Gradient",      category: "Waves & Motion", implemented: true },
   { id: "color_wash",     label: "Color Wash",    category: "Waves & Motion", implemented: false },
   { id: "spirals",        label: "Spirals",       category: "Waves & Motion", implemented: false },
   { id: "curtain",        label: "Curtain",       category: "Waves & Motion", implemented: false },
   { id: "scanner",        label: "Scanner",       category: "Waves & Motion", implemented: false },
-  { id: "heartbeat",      label: "Heartbeat",     category: "Waves & Motion", implemented: false },
+  { id: "heartbeat",      label: "Heartbeat",     category: "Waves & Motion", implemented: true },
 
   // ── 2D Effects ──────────────────────────────────────────────────────────
   { id: "fire",           label: "Fire",          category: "2D Effects", implemented: false },

@@ -12,7 +12,7 @@
  * Unimplemented shows fall back to `effectSolid` so the canvas never blanks.
  */
 
-import { TOTAL_LEDS, type NormalizedPixel } from "./pixelLayout";
+import { TOTAL_LEDS, SIGN_ASPECT_RATIO, type NormalizedPixel } from "./pixelLayout";
 import type { RGB } from "./palettes";
 
 export interface EffectParams {
@@ -103,14 +103,26 @@ export const effectBreathe: EffectFn = (_pixel, t, p) => {
   return applyBrightness(activeColor(p), lvl * p.brightness);
 };
 
-export const effectPulse: EffectFn = (_pixel, t, p) => {
-  const speedMul = 0.6 + p.speed * 2.4;
-  const ph = (t * speedMul) % (Math.PI * 2);
-  const wave = Math.max(0, Math.sin(ph));
-  const sharp = Math.pow(wave, 2 + p.intensity * 4);
-  const floor = 0.1 * (1 - p.intensity);
-  const lvl = floor + (1 - floor) * sharp;
-  return applyBrightness(activeColor(p), lvl * p.brightness);
+/**
+ * Pulse — matches shows.py:Pulse exactly.
+ *   freq = 0.3 + speed·2.7
+ *   wave = (sin(2π·t·freq) + 1)/2
+ *   low  = 1 - intensity·0.8         (low intensity → tiny dynamic range)
+ *   bright = low + wave·(1-low)
+ *   Palette: gradient across the sign drifting at 0.1·(0.5+speed)
+ */
+export const effectPulse: EffectFn = (pixel, t, p) => {
+  const freq = 0.3 + p.speed * 2.7;
+  const wave = (Math.sin(t * freq * 2 * Math.PI) + 1) / 2;
+  const low = 1.0 - p.intensity * 0.8;
+  const bright = low + wave * (1 - low);
+
+  if (p.usePalette && p.paletteColors.length >= 2) {
+    const shift = t * 0.1 * (0.5 + p.speed);
+    const pos = (pixel.gi / TOTAL_LEDS + shift) % 1;
+    return applyBrightness(paletteAt(p.paletteColors, pos), bright * p.brightness);
+  }
+  return applyBrightness(p.color, bright * p.brightness);
 };
 
 /**
@@ -222,6 +234,169 @@ export const effectLetterColors: EffectFn = (pixel, t, p) => {
   return applyBrightness(base, breathe * p.brightness);
 };
 
+/**
+ * Twinkle — matches shows.py:Twinkle exactly.
+ *   "Soft random fading like fairy lights."
+ *
+ * Each LED has a fixed random phase φᵢ and breathes independently:
+ *   wave   = (sin(t·rate + φᵢ) + 1)/2     where rate = 0.5 + 3·speed
+ *   bright = (0.15 + 0.2·intensity) + wave · 0.6·intensity
+ *   Palette: each LED's color picked by its phase value (so colors
+ *            are stable across time, only brightness twinkles)
+ *
+ * The Python uses np.random for phases; we use a deterministic hash of
+ * pixel.gi so phases stay stable across frames (and across reloads).
+ */
+function pixelPhase(gi: number): number {
+  // Deterministic 32-bit hash → [0, 2π)
+  let s = (gi * 2654435761) >>> 0;
+  s ^= s << 13; s >>>= 0;
+  s ^= s >>> 17;
+  s ^= s << 5;  s >>>= 0;
+  return ((s & 0xffffff) / 0xffffff) * 2 * Math.PI;
+}
+
+export const effectTwinkle: EffectFn = (pixel, t, p) => {
+  const phi = pixelPhase(pixel.gi);
+  const rate = 0.5 + p.speed * 3.0;
+  const wave = (Math.sin(t * rate + phi) + 1) / 2;
+  const base = 0.15 + 0.2 * p.intensity;
+  const depth = 0.6 * p.intensity;
+  const bright = base + wave * depth;
+
+  if (p.usePalette && p.paletteColors.length >= 2) {
+    const c = paletteAt(p.paletteColors, phi / (2 * Math.PI));
+    return applyBrightness(c, bright * p.brightness);
+  }
+  return applyBrightness(p.color, bright * p.brightness);
+};
+
+/**
+ * Gradient — matches shows.py:Gradient exactly.
+ *   "Smooth color blend that slowly shifts and breathes."
+ *
+ *   global breathe over the whole sign:
+ *     low=0.4+0.2·intensity, high=0.7+0.3·intensity
+ *   horizontal palette drift at speed t·(0.02 + speed·0.08)
+ *   In single-color mode there's a soft secondary sin-modulation across X.
+ */
+export const effectGradient: EffectFn = (pixel, t, p) => {
+  const breatheRate = 0.15 + p.speed * 0.4;
+  const breathe = (Math.sin(t * breatheRate * 2 * Math.PI) + 1) / 2;
+  const low = 0.4 + 0.2 * p.intensity;
+  const high = 0.7 + 0.3 * p.intensity;
+  const globalBright = low + breathe * (high - low);
+  const shift = t * (0.02 + p.speed * 0.08);
+  const spatial = pixel.nx;
+
+  if (p.usePalette && p.paletteColors.length >= 2) {
+    const pos = (spatial + shift) % 1.0;
+    return applyBrightness(paletteAt(p.paletteColors, pos), globalBright * p.brightness);
+  }
+  // Single-color: add a soft sin-shaped modulation across X
+  const pos = (spatial + shift) % 1.0;
+  const localMod = 0.6 + 0.4 * ((Math.sin(pos * 2 * Math.PI) + 1) / 2);
+  return applyBrightness(p.color, globalBright * localMod * p.brightness);
+};
+
+/**
+ * Shimmer — matches shows.py:Shimmer exactly.
+ *   "Subtle fast micro-sparkles — like sequin fabric catching light."
+ *
+ *   Base layer at 0.3 + 0.3·intensity of color (palette gradient or solid),
+ *   each frame ~(0.01 + speed·0.06) of LEDs get boosted by 1 + rand·0.6·intensity.
+ *
+ * Like Sparkle, runs at 30 Hz refresh rate independent of rAF.
+ */
+const SHIMMER_FPS = 30;
+export const effectShimmer: EffectFn = (pixel, t, p) => {
+  const baseBright = (0.3 + 0.3 * p.intensity) * p.brightness;
+  // Base layer
+  const baseColor =
+    p.usePalette && p.paletteColors.length >= 2
+      ? paletteAt(p.paletteColors, pixel.gi / TOTAL_LEDS)
+      : p.color;
+
+  const frame = Math.floor(t * SHIMMER_FPS);
+  const [r1, r2] = frameRand(pixel.gi, frame);
+  const density = 0.01 + p.speed * 0.06;
+  const isBoost = r1 < density;
+
+  const out: RGB = [
+    baseColor[0] * baseBright,
+    baseColor[1] * baseBright,
+    baseColor[2] * baseBright,
+  ];
+  if (isBoost) {
+    const boost = 1.0 + r2 * 0.6 * p.intensity;
+    out[0] *= boost;
+    out[1] *= boost;
+    out[2] *= boost;
+  }
+  return [clamp255(out[0]), clamp255(out[1]), clamp255(out[2])];
+};
+
+/**
+ * Heartbeat — matches shows.py:Heartbeat exactly.
+ *   "Double-pulse lub-dub that fills the whole letter — perfect for weddings."
+ *
+ *   cycle = max(0.6, 1.5 - 0.9·speed) seconds
+ *   Within each cycle (phase ∈ [0,1)):
+ *     0.00–0.15 → lub:  pulse = sin(p·π)²
+ *     0.15–0.20 → small hold at 0.1
+ *     0.20–0.35 → dub:  pulse = sin(p·π)² · 0.7
+ *     0.35–1.00 → dark
+ *   Pulse expands as a circle from center (0.5, 0.5) with radius
+ *   pulse·(0.05 + 0.95·pulse_spread)·scale, with aspect-ratio compensation
+ *   so the ripple stays circular across the ~4.6:1 sign.
+ *
+ * pulse_spread defaults to 50 (controller's default).
+ */
+export const effectHeartbeat: EffectFn = (pixel, t, p) => {
+  const PULSE_SPREAD = 0.5; // controller default
+  const cycle = Math.max(0.6, 1.5 - p.speed * 0.9);
+  const phase = (t % cycle) / cycle;
+
+  let pulse = 0;
+  if (phase < 0.15) {
+    const pp = phase / 0.15;
+    pulse = Math.sin(pp * Math.PI) ** 2;
+  } else if (phase < 0.2) {
+    pulse = 0.1;
+  } else if (phase < 0.35) {
+    const pp = (phase - 0.2) / 0.15;
+    pulse = Math.sin(pp * Math.PI) ** 2 * 0.7;
+  }
+
+  const baseBright = 0.05 * p.intensity;
+  const pulseBright = pulse * (0.5 + 0.5 * p.intensity);
+
+  // Aspect compensation: keep the pulse a circle, scale to cover canvas
+  const ar = SIGN_ASPECT_RATIO;
+  const scale = Math.max(1.0, (ar + 1.0) / 2.0);
+  const dx = (pixel.nx - 0.5) * ar;
+  const dy = pixel.ny - 0.5;
+  const dist = Math.sqrt(dx * dx + dy * dy);
+  const spreadRadius = pulse * (0.05 + PULSE_SPREAD * 0.95) * scale;
+
+  let local: number;
+  if (spreadRadius > 0.01 && dist < spreadRadius) {
+    local = pulseBright * (1.0 - (dist / spreadRadius) * 0.5);
+  } else {
+    local = baseBright;
+  }
+
+  // Color: palette mode samples by distance-from-center, single uses the color
+  let baseColor: RGB;
+  if (p.usePalette && p.paletteColors.length >= 2) {
+    const palPos = Math.min(1, dist / Math.max(0.01, spreadRadius));
+    baseColor = paletteAt(p.paletteColors, palPos);
+  } else {
+    baseColor = p.color;
+  }
+  return applyBrightness(baseColor, local * p.brightness);
+};
+
 // ── Registry ──────────────────────────────────────────────────────────────────
 
 export const EFFECT_FNS: Record<string, EffectFn> = {
@@ -229,9 +404,13 @@ export const EFFECT_FNS: Record<string, EffectFn> = {
   breathe:       effectBreathe,
   pulse:         effectPulse,
   sparkle:       effectSparkle,
+  twinkle:       effectTwinkle,
+  shimmer:       effectShimmer,
   wave:          effectWave,
+  gradient:      effectGradient,
   rainbow:       effectRainbow,
   letter_colors: effectLetterColors,
+  heartbeat:     effectHeartbeat,
 };
 
 /** Resolve a show id to its effect function (falls back to solid). */
