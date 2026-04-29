@@ -1341,6 +1341,7 @@ import { meteorsEffect } from "./meteors";
 import { fireEffect } from "./fire";
 import { shapeEffect } from "./shape";
 import { candleEffect } from "./candle";
+import { eqBarsEffect, beatStrobeEffect, spectrumWashEffect } from "./audioReactive";
 
 const PIXEL_EFFECTS: Record<string, EffectFn> = {
   solid:         effectSolid,
@@ -1379,6 +1380,9 @@ const STATEFUL_EFFECTS: Record<string, StatefulEffect> = {
   fire:          fireEffect,
   shape:         shapeEffect,
   candle_xl:     candleEffect,
+  eq_bars:       eqBarsEffect,
+  beat_strobe:   beatStrobeEffect,
+  spectrum_wash: spectrumWashEffect,
 };
 
 /** Resolve a show id to its full effect (pixel or stateful). */

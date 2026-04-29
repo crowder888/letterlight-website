@@ -83,6 +83,7 @@ export default function ControllerSimulator() {
 
   const show = getShow(activeShow);
   const showLabel = show?.label ?? "Solid";
+  const isAudioReactive = show?.category === "Audio Reactive";
 
   return (
     <div className="ll-controller">
@@ -107,6 +108,19 @@ export default function ControllerSimulator() {
         </div>
         <LetterCanvas showId={activeShow} params={params} />
       </div>
+
+      {/* Audio-reactive disclaimer — only shown when an audio show is active */}
+      {isAudioReactive && (
+        <div className="ll-audio-note">
+          <span className="ll-audio-note-icon">🎤</span>
+          <span>
+            <strong>Audio-reactive demo.</strong>{" "}
+            At your event, this effect responds to your DJ&apos;s music in real
+            time through a microphone we plug into the controller.  Here, you&apos;re
+            seeing a synthetic preview so you can get a feel for how it moves.
+          </span>
+        </div>
+      )}
 
       {/* Show grid */}
       <ShowGrid activeShow={activeShow} onSelectShow={setActiveShow} />

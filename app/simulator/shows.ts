@@ -253,7 +253,7 @@ export const SHOWS: ShowDef[] = [
 
   // ── Audio Reactive ──────────────────────────────────────────────────────
   {
-    id: "eq_bars", label: "EQ Bars", category: "Audio Reactive", implemented: false,
+    id: "eq_bars", label: "EQ Bars", category: "Audio Reactive", implemented: true,
     params: [
       { key: "smoothing",  label: "Smoothing",  min: 0, max: 100, default: 30 },
       { key: "min_floor",  label: "Min Floor",  min: 0, max: 50,  default: 5 },
@@ -262,7 +262,7 @@ export const SHOWS: ShowDef[] = [
     ],
   },
   {
-    id: "beat_strobe", label: "Beat Strobe", category: "Audio Reactive", implemented: false,
+    id: "beat_strobe", label: "Beat Strobe", category: "Audio Reactive", implemented: true,
     params: [
       { key: "trigger",      label: "Trigger Drum",     min: 0, max: 5,   default: 0 },
       { key: "sensitivity",  label: "Beat Sensitivity", min: 0, max: 100, default: 50 },
@@ -273,7 +273,7 @@ export const SHOWS: ShowDef[] = [
     ],
   },
   {
-    id: "spectrum_wash", label: "Spectrum Wash", category: "Audio Reactive", implemented: false,
+    id: "spectrum_wash", label: "Spectrum Wash", category: "Audio Reactive", implemented: true,
     params: [
       { key: "smoothing",  label: "Smoothing",  min: 0, max: 100, default: 40 },
       { key: "min_floor",  label: "Min Floor",  min: 0, max: 50,  default: 10 },

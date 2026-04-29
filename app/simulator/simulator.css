@@ -708,6 +708,39 @@
   border-radius: 6px;
 }
 
+/* ── Audio-reactive demo note ──────────────────────────────────────────── */
+.ll-audio-note {
+  margin: 0 12px 12px;
+  padding: 12px 14px;
+  background: linear-gradient(145deg, #1a1a2e, #14142a);
+  border: 1px solid rgba(255, 200, 140, 0.2);
+  border-left: 3px solid #ffc88c;
+  border-radius: 12px;
+  font-size: 12px;
+  color: #b0b0c0;
+  line-height: 1.5;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.ll-audio-note strong {
+  color: #ffc88c;
+  font-weight: 700;
+}
+
+.ll-audio-note-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+  margin-top: -1px;
+}
+
+@media (min-width: 700px) {
+  .ll-audio-note {
+    margin: 0 16px 14px;
+  }
+}
+
 /* ── Footer note ────────────────────────────────────────────────────────── */
 .ll-footer-note {
   text-align: center;
