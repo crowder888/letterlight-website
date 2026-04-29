@@ -42,6 +42,10 @@ export interface NormalizedPixel {
   li: number;
   /** Global LED index across all letters */
   gi: number;
+  /** Grid row within letter (from JSON; used for perimeter detection) */
+  row: number;
+  /** Grid col within letter (from JSON; used for perimeter detection) */
+  col: number;
 }
 
 // MR & MRS letter order: M, R, &, M, R, S
@@ -110,6 +114,8 @@ function buildLayout(): NormalizedPixel[] {
         lny: (p.y - b.minY) / lh,
         li,
         gi: gi++,
+        row: p.row,
+        col: p.col,
       });
     }
   }
@@ -127,3 +133,55 @@ export const TOTAL_LEDS = PIXEL_LAYOUT.length;
  *   canvas.height = Math.floor(canvas.width / SIGN_ASPECT_RATIO)
  */
 export const SIGN_ASPECT_RATIO = 4.57; // totalWidth / maxHeight ≈ 18415 / 4032
+
+/**
+ * Perimeter pixels per letter, ordered for chase animations (Marquee).
+ *
+ * The real controller loads explicit perimeter walk-order from JSON
+ * files (mrc-marquee-controller/config.json `perimeter_files`).  Those
+ * files use the controller's original LED indexing, which doesn't match
+ * my PDF-extracted pixel maps, so we compute perimeter ourselves:
+ *
+ *   1. For each letter, build a set of grid cells (row, col).
+ *   2. A pixel is on the perimeter if at least one of its 4-connected
+ *      grid neighbors is absent (boundary detection).
+ *   3. Sort by clockwise angle from the letter's center, starting at
+ *      12 o'clock.  Approximate but visually correct for chase effects.
+ */
+function computePerimeters(): number[][] {
+  const numLetters = LETTER_DATA.length;
+  const out: number[][] = [];
+  for (let li = 0; li < numLetters; li++) {
+    const letterPixels = PIXEL_LAYOUT.filter((p) => p.li === li);
+    const cellSet = new Set<string>();
+    for (const p of letterPixels) cellSet.add(`${p.row},${p.col}`);
+
+    const perim: NormalizedPixel[] = [];
+    for (const p of letterPixels) {
+      const ns = [
+        `${p.row - 1},${p.col}`,
+        `${p.row + 1},${p.col}`,
+        `${p.row},${p.col - 1}`,
+        `${p.row},${p.col + 1}`,
+      ];
+      if (ns.some((k) => !cellSet.has(k))) perim.push(p);
+    }
+
+    // Sort clockwise from 12 o'clock (top-center).
+    // atan2(x, y) gives angle measured clockwise from +Y axis.
+    perim.sort((a, b) => {
+      const ax = a.lnx - 0.5;
+      const ay = 0.5 - a.lny; // flip Y so up = positive (toward top of letter)
+      const bx = b.lnx - 0.5;
+      const by = 0.5 - b.lny;
+      const aa = (Math.atan2(ax, ay) + 2 * Math.PI) % (2 * Math.PI);
+      const bb = (Math.atan2(bx, by) + 2 * Math.PI) % (2 * Math.PI);
+      return aa - bb;
+    });
+
+    out.push(perim.map((p) => p.gi));
+  }
+  return out;
+}
+
+export const PERIMETER_BY_LETTER: number[][] = computePerimeters();

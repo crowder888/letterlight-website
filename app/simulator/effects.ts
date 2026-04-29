@@ -12,7 +12,7 @@
  * Unimplemented shows fall back to `effectSolid` so the canvas never blanks.
  */
 
-import { TOTAL_LEDS, SIGN_ASPECT_RATIO, type NormalizedPixel } from "./pixelLayout";
+import { TOTAL_LEDS, SIGN_ASPECT_RATIO, PERIMETER_BY_LETTER, type NormalizedPixel } from "./pixelLayout";
 import type { RGB } from "./palettes";
 
 export interface EffectParams {
@@ -891,6 +891,137 @@ export const effectGalaxy: EffectFn = (pixel, t, p) => {
   return [0, 0, 0];
 };
 
+/**
+ * Circles — matches shows.py:Circles.
+ *
+ *   "Expanding concentric circles from the center."
+ *
+ * Per-show params:
+ *   • ring_count — 1..12 (number of concentric rings)
+ *   • thickness  — 10..100 % (how much of each ring is visible)
+ *   • bg_glow    — 0..100 % background glow
+ *   • bg_color   — RGB background color
+ */
+export const effectCircles: EffectFn = (pixel, t, p) => {
+  const ringCount = paramN(p, "ring_count", 4);
+  const thickness = paramN(p, "thickness", 50) / 100;
+  const bgGlow = paramN(p, "bg_glow", 0) / 100;
+  const bgColor = paramC(p, "bg_color", [255, 200, 140]);
+
+  const ar = SIGN_ASPECT_RATIO;
+  const ringSpeed = 0.2 + p.speed * 0.8;
+  const bright = 0.4 + 0.6 * p.intensity;
+
+  const dx = (pixel.nx - 0.5) * ar;
+  const dy = pixel.ny - 0.5;
+  const dist = Math.sqrt(dx * dx + dy * dy);
+
+  const ringPhase = (dist * ringCount - t * ringSpeed) % 1.0;
+  const phaseW = ((ringPhase % 1) + 1) % 1;
+  let wave = (Math.sin(phaseW * 2 * Math.PI) + 1) / 2;
+  wave = Math.max(0, (wave - (1 - thickness)) / thickness);
+
+  // Background glow (always present as the floor)
+  const bgLevel = bgGlow * 0.15 * p.intensity * p.brightness;
+  const bgR = bgColor[0] * bgLevel;
+  const bgG = bgColor[1] * bgLevel;
+  const bgB = bgColor[2] * bgLevel;
+
+  if (wave < 0.01) {
+    return [clamp255(bgR), clamp255(bgG), clamp255(bgB)];
+  }
+
+  // Ring color: palette samples by dist (with slow time drift); single uses primary
+  const c =
+    p.usePalette && p.paletteColors.length >= 2
+      ? paletteAt(p.paletteColors, (dist * 2 + t * 0.05) % 1)
+      : p.color;
+  const lvl = wave * bright * p.brightness;
+  // Composite via max over background
+  return [
+    clamp255(Math.max(c[0] * lvl, bgR)),
+    clamp255(Math.max(c[1] * lvl, bgG)),
+    clamp255(Math.max(c[2] * lvl, bgB)),
+  ];
+};
+
+/**
+ * Marquee — matches shows.py:Marquee.
+ *
+ *   "Classic marquee — chasing lights around the perimeter with a
+ *    different fill color on the interior.  Palette colors 1-2 do the
+ *    chase (alternating per cycle); interior_color fills the inside."
+ *
+ * Perimeter ordering computed in pixelLayout.ts (boundary detection +
+ * clockwise angular sort) since my regenerated pixel maps don't match
+ * the controller's hand-traced perimeter JSONs.
+ *
+ * Per-show params:
+ *   • chase_width   — 1..20 LEDs per chase segment
+ *   • gap_width     — 1..20 LEDs per gap between chases
+ *   • interior_glow — 0..100 % brightness of non-perimeter pixels
+ *   • bg_color      — RGB color for the interior glow
+ */
+// Build a perimeter-position lookup so the per-pixel function can find
+// each pixel's index along its letter's perimeter walk in O(1).
+// Map: gi → { letterIdx, posInPerim, perimLen } (or null if interior)
+type PerimSlot = { posInPerim: number; perimLen: number };
+const PERIM_LOOKUP: (PerimSlot | null)[] = (() => {
+  const map: (PerimSlot | null)[] = new Array(TOTAL_LEDS).fill(null);
+  for (let li = 0; li < PERIMETER_BY_LETTER.length; li++) {
+    const ring = PERIMETER_BY_LETTER[li];
+    for (let pos = 0; pos < ring.length; pos++) {
+      map[ring[pos]] = { posInPerim: pos, perimLen: ring.length };
+    }
+  }
+  return map;
+})();
+
+export const effectMarquee: EffectFn = (pixel, t, p) => {
+  const chaseWidth = Math.max(1, paramN(p, "chase_width", 5));
+  const gapWidth = Math.max(1, paramN(p, "gap_width", 5));
+  const interiorGlow = paramN(p, "interior_glow", 40) / 100;
+  const interiorColor = paramC(p, "bg_color", [255, 200, 140]);
+
+  const bright = 0.5 + 0.5 * p.intensity;
+  const chaseSpeed = 2.0 + p.speed * 15.0;
+  const offset = t * chaseSpeed;
+  const cycleLen = chaseWidth + gapWidth;
+
+  const slot = PERIM_LOOKUP[pixel.gi];
+
+  if (!slot) {
+    // Interior — gentle glow
+    const glow = interiorGlow * bright * p.brightness;
+    return [
+      clamp255(interiorColor[0] * glow),
+      clamp255(interiorColor[1] * glow),
+      clamp255(interiorColor[2] * glow),
+    ];
+  }
+
+  const pos = (slot.posInPerim + offset) % cycleLen;
+  if (pos >= chaseWidth) return [0, 0, 0];
+
+  // Pick color (alternates per cycle segment)
+  let chase1: RGB;
+  let chase2: RGB;
+  if (p.usePalette && p.paletteColors.length >= 2) {
+    chase1 = p.paletteColors[0];
+    chase2 = p.paletteColors[1];
+  } else {
+    chase1 = p.color;
+    chase2 = [
+      Math.round(p.color[0] * 0.6),
+      Math.round(p.color[1] * 0.6),
+      Math.round(p.color[2] * 0.6),
+    ];
+  }
+  const segment = Math.floor((slot.posInPerim + offset) / cycleLen);
+  const c = segment % 2 === 0 ? chase1 : chase2;
+  return applyBrightness(c, bright * p.brightness);
+};
+
 // ── Registry ──────────────────────────────────────────────────────────────────
 
 import { fireworksEffect } from "./fireworks";
@@ -898,6 +1029,7 @@ import { cameraFlashEffect } from "./cameraFlash";
 import { fairyDustEffect } from "./fairyDust";
 import { snowflakesEffect } from "./snowflakes";
 import { meteorsEffect } from "./meteors";
+import { fireEffect } from "./fire";
 
 const PIXEL_EFFECTS: Record<string, EffectFn> = {
   solid:         effectSolid,
@@ -918,6 +1050,8 @@ const PIXEL_EFFECTS: Record<string, EffectFn> = {
   strobe:        effectStrobe,
   shockwave:     effectShockwave,
   galaxy:        effectGalaxy,
+  circles:       effectCircles,
+  marquee:       effectMarquee,
 };
 
 const STATEFUL_EFFECTS: Record<string, StatefulEffect> = {
@@ -926,6 +1060,7 @@ const STATEFUL_EFFECTS: Record<string, StatefulEffect> = {
   fairy_dust:    fairyDustEffect,
   snowflakes:    snowflakesEffect,
   meteors:       meteorsEffect,
+  fire:          fireEffect,
 };
 
 /** Resolve a show id to its full effect (pixel or stateful). */

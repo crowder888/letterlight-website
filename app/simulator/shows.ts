@@ -140,7 +140,7 @@ export const SHOWS: ShowDef[] = [
 
   // ── 2D Effects ──────────────────────────────────────────────────────────
   {
-    id: "fire", label: "Fire", category: "2D Effects", implemented: false,
+    id: "fire", label: "Fire", category: "2D Effects", implemented: true,
     params: [
       { key: "flame_height", label: "Flame Height", min: 1,  max: 100, default: 50 },
       { key: "sparking",     label: "Spark Rate",   min: 10, max: 100, default: 50 },
@@ -188,7 +188,7 @@ export const SHOWS: ShowDef[] = [
     ],
   },
   {
-    id: "circles", label: "Circles", category: "2D Effects", implemented: false,
+    id: "circles", label: "Circles", category: "2D Effects", implemented: true,
     params: [
       { key: "ring_count", label: "Ring Count",      min: 1,  max: 12,  default: 4 },
       { key: "thickness",  label: "Ring Thickness",  min: 10, max: 100, default: 50 },
@@ -242,7 +242,7 @@ export const SHOWS: ShowDef[] = [
     ],
   },
   {
-    id: "marquee", label: "Marquee", category: "2D Effects", implemented: false,
+    id: "marquee", label: "Marquee", category: "2D Effects", implemented: true,
     params: [
       { key: "chase_width",   label: "Chase Width",   min: 1, max: 20,  default: 5 },
       { key: "gap_width",     label: "Gap Width",     min: 1, max: 20,  default: 5 },
