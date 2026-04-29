@@ -47,7 +47,7 @@ export const SHOWS: ShowDef[] = [
     ],
   },
   {
-    id: "letter_chase", label: "Letter Chase", category: "Essentials", implemented: false,
+    id: "letter_chase", label: "Letter Chase", category: "Essentials", implemented: true,
     params: [
       { key: "dim_level", label: "Dim Level",      min: 0, max: 50,  default: 5 },
       { key: "fade",      label: "Fade Smoothness",min: 0, max: 100, default: 30 },
@@ -55,7 +55,7 @@ export const SHOWS: ShowDef[] = [
     ],
   },
   {
-    id: "letter_swap", label: "Letter Swap", category: "Essentials", implemented: false,
+    id: "letter_swap", label: "Letter Swap", category: "Essentials", implemented: true,
     params: [
       { key: "fade_smooth", label: "Fade Smoothness", min: 0, max: 100, default: 50 },
       { key: "direction",   label: "Direction",       min: 0, max: 1,   default: 0 },

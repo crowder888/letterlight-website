@@ -443,6 +443,123 @@ export const effectHeartbeat: EffectFn = (pixel, t, p) => {
   return applyBrightness(baseColor, local * p.brightness);
 };
 
+/**
+ * Letter Chase — matches shows.py:LetterChase exactly.
+ *
+ *   "One letter at a time lights up bright, others stay dim or dark.
+ *    Cycles through M → R → & → M → R → S → repeat."
+ *
+ * Per-show params:
+ *   • dim_level       — 0..50  (% brightness of inactive letters)
+ *   • fade            — 0..100 (smoothness of letter-to-letter transition)
+ *   • direction       — 0=forward, 1=reverse, 2=ping-pong
+ */
+const NUM_LETTERS = 6;
+
+export const effectLetterChase: EffectFn = (pixel, t, p) => {
+  const dimLevel = paramN(p, "dim_level", 5) / 100;
+  const fadeSmooth = paramN(p, "fade", 30) / 100;
+  const direction = paramN(p, "direction", 0);
+  const bright = 0.4 + 0.6 * p.intensity;
+
+  const secondsPerLetter = Math.max(0.2, 2.0 - p.speed * 1.7);
+  const cyclePos = t / secondsPerLetter;
+
+  // Determine active letter based on direction
+  let activeIdx: number;
+  if (direction === 1) {
+    activeIdx = Math.floor(NUM_LETTERS - 1 - (cyclePos % NUM_LETTERS));
+  } else if (direction === 2) {
+    const ping = NUM_LETTERS > 1
+      ? cyclePos % (2 * (NUM_LETTERS - 1))
+      : 0;
+    activeIdx = ping < NUM_LETTERS
+      ? Math.floor(ping)
+      : Math.floor(2 * (NUM_LETTERS - 1) - ping);
+  } else {
+    activeIdx = Math.floor(cyclePos % NUM_LETTERS);
+  }
+
+  const sub = cyclePos - Math.floor(cyclePos);
+
+  // Wrap-aware distance from this letter to the active letter
+  const forwardDist = (pixel.li - activeIdx + NUM_LETTERS) % NUM_LETTERS;
+  const reverseDist = (activeIdx - pixel.li + NUM_LETTERS) % NUM_LETTERS;
+  const cycleDist = Math.min(forwardDist, reverseDist);
+
+  let level: number;
+  if (cycleDist === 0) {
+    // Active letter — full bright, with smooth fade-in at start of step
+    level = bright;
+    if (fadeSmooth > 0 && sub < fadeSmooth) {
+      const blend = sub / fadeSmooth;
+      level = bright * (dimLevel + (1 - dimLevel) * blend);
+    }
+  } else if (cycleDist === 1 && fadeSmooth > 0 && sub > 1 - fadeSmooth) {
+    // Next letter — fade in early
+    const blend = (sub - (1 - fadeSmooth)) / fadeSmooth;
+    level = bright * (dimLevel + (1 - dimLevel) * blend * 0.6);
+  } else {
+    // Other letters — dim
+    level = bright * dimLevel;
+  }
+
+  // Color: palette mode picks one per letter; single mode = primary color
+  const baseColor =
+    p.usePalette && p.paletteColors.length >= 2
+      ? p.paletteColors[pixel.li % p.paletteColors.length]
+      : p.color;
+  return applyBrightness(baseColor, level * p.brightness);
+};
+
+/**
+ * Letter Swap — matches shows.py:LetterSwap exactly.
+ *
+ *   "Each letter holds a color from the palette.  Periodically all
+ *    colors shift one position around (wrapping)."
+ *
+ * Per-show params:
+ *   • fade_smooth — 0..100  (what fraction of each cycle is the cross-fade)
+ *   • direction   — 0=forward (L→R), 1=reverse
+ */
+export const effectLetterSwap: EffectFn = (pixel, t, p) => {
+  const fadeSmooth = paramN(p, "fade_smooth", 50) / 100;
+  const direction = paramN(p, "direction", 0);
+  const bright = 0.4 + 0.6 * p.intensity;
+
+  const secondsPerShift = Math.max(0.3, 3.0 - p.speed * 2.5);
+  const cyclePos = t / secondsPerShift;
+  const shiftStep = Math.floor(cyclePos);
+  const sub = cyclePos - shiftStep;
+
+  // Source palette: active palette in palette mode, single color otherwise
+  const colors: RGB[] =
+    p.usePalette && p.paletteColors.length >= 2 ? p.paletteColors : [p.color];
+
+  const dirSign = direction === 0 ? 1 : -1;
+
+  // Current and next color slot for this letter
+  const currentIdx = ((pixel.li - dirSign * shiftStep) % colors.length + colors.length) % colors.length;
+  const nextIdx = ((pixel.li - dirSign * (shiftStep + 1)) % colors.length + colors.length) % colors.length;
+  const currentC = colors[currentIdx];
+  const nextC = colors[nextIdx];
+
+  // Blend with smooth ease-in-out over the fade window
+  let blend = 0;
+  if (fadeSmooth > 0) {
+    const fadeWindow = Math.max(0.05, fadeSmooth);
+    if (sub >= 1 - fadeWindow) {
+      const raw = (sub - (1 - fadeWindow)) / fadeWindow;
+      blend = raw * raw * (3 - 2 * raw); // smoothstep
+    }
+  }
+
+  const r = (currentC[0] * (1 - blend) + nextC[0] * blend) * bright * p.brightness;
+  const g = (currentC[1] * (1 - blend) + nextC[1] * blend) * bright * p.brightness;
+  const b = (currentC[2] * (1 - blend) + nextC[2] * blend) * bright * p.brightness;
+  return [clamp255(r), clamp255(g), clamp255(b)];
+};
+
 // ── Registry ──────────────────────────────────────────────────────────────────
 
 import { fireworksEffect } from "./fireworks";
@@ -458,6 +575,8 @@ const PIXEL_EFFECTS: Record<string, EffectFn> = {
   gradient:      effectGradient,
   rainbow:       effectRainbow,
   letter_colors: effectLetterColors,
+  letter_chase:  effectLetterChase,
+  letter_swap:   effectLetterSwap,
   heartbeat:     effectHeartbeat,
 };
 
