@@ -113,18 +113,21 @@ export default function Home() {
               icon: "✦",
               title: "Real-Time Availability",
               body: "Know instantly if your letters are available for your date — no waiting, no back-and-forth.",
+              cta: null,
             },
             {
               icon: "◈",
               title: "Custom Light Effects",
               body: "Dozens of animations — warm glow, color wash, twinkle, pulse. Preview your exact look before you book.",
+              cta: { href: "/simulator", label: "Try the Live Preview" },
             },
             {
               icon: "◇",
               title: "White Glove Delivery",
               body: "We deliver, set up, and tear down. You don't lift a finger on the most important night of your life.",
+              cta: null,
             },
-          ].map(({ icon, title, body }) => (
+          ].map(({ icon, title, body, cta }) => (
             <div key={title} className="flex flex-col items-center gap-4">
               <span className="text-[#C9A96E] text-2xl">{icon}</span>
               <h3 className="font-display text-2xl text-[#1C1C1E] font-light tracking-wide">
@@ -133,6 +136,14 @@ export default function Home() {
               <p className="text-[#1C1C1E]/60 text-sm leading-relaxed max-w-xs">
                 {body}
               </p>
+              {cta && (
+                <Link
+                  href={cta.href}
+                  className="mt-2 border border-[#C9A96E] text-[#C9A96E] text-xs tracking-widest uppercase px-5 py-2.5 hover:bg-[#C9A96E] hover:text-white transition-colors"
+                >
+                  {cta.label} →
+                </Link>
+              )}
             </div>
           ))}
         </div>
@@ -268,7 +279,19 @@ export default function Home() {
                 ].map((item) => (
                   <li key={item} className="flex items-center gap-2">
                     <span className="text-[#C9A96E] text-xs">✦</span>
-                    {item}
+                    {item === "Live-controlled LED lighting" ? (
+                      <>
+                        {item}
+                        <Link
+                          href="/simulator"
+                          className="text-[#C9A96E] text-xs tracking-wider uppercase ml-1 underline-offset-2 hover:underline"
+                        >
+                          Try it →
+                        </Link>
+                      </>
+                    ) : (
+                      item
+                    )}
                   </li>
                 ))}
               </ul>
