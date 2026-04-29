@@ -63,6 +63,33 @@ export async function submitWaitlist(
       console.error("Resend error:", error);
       return { status: "error", message: "Could not send your request. Please try again or email us directly." };
     }
+
+    // Confirmation email to customer
+    await resend.emails.send({
+      from: FROM_EMAIL,
+      to: email,
+      replyTo: TO_EMAIL,
+      subject: "You're on the waitlist — Letterlight Co.",
+      html: `
+        <div style="font-family: system-ui, sans-serif; max-width: 600px; line-height: 1.6;">
+          <h2 style="color: #1C1C1E; border-bottom: 2px solid #C9A96E; padding-bottom: 8px;">
+            You&apos;re on the list, ${escapeHtml(name)}!
+          </h2>
+          <p style="color: #444; margin-top: 16px;">
+            We've added you to the waitlist for custom words${word ? ` — we've noted <strong>${escapeHtml(word)}</strong> as your word` : ""}.
+          </p>
+          <p style="color: #444;">
+            We're actively building out a full alphabet and will reach out as soon as
+            custom words are available${displayDate ? `, with your event date of ${displayDate} in mind` : ""}.
+          </p>
+          <p style="color: #444;">
+            In the meantime, our <strong>MR &amp; MRS</strong> set is available to book now
+            at <a href="https://letterlightco.com/#pricing" style="color: #C9A96E;">letterlightco.com</a>.
+          </p>
+          <p style="margin-top: 24px; color: #888; font-size: 13px;">— Letterlight Co.</p>
+        </div>
+      `,
+    }).catch((err) => console.error("Confirmation email error:", err));
   } catch (err) {
     console.error("Waitlist action error:", err);
     return { status: "error", message: "Something went wrong. Please try again or email us directly." };

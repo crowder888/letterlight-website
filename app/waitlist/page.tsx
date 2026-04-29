@@ -1,5 +1,11 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import WaitlistForm from "./WaitlistForm";
+
+export const metadata: Metadata = {
+  title: "Custom Words Waitlist — Letterlight Co.",
+  description: "Join the waitlist for custom illuminated marquee letters. Tell us your word or phrase and event date — we'll reach out as soon as custom words are available.",
+};
 
 export default function WaitlistPage() {
   return (

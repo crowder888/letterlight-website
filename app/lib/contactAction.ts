@@ -70,6 +70,29 @@ export async function submitInquiry(
         message: "Could not send your message. Please try again or email us directly.",
       };
     }
+
+    // Confirmation email to customer
+    await resend.emails.send({
+      from: FROM_EMAIL,
+      to: email,
+      replyTo: TO_EMAIL,
+      subject: "We got your message — Letterlight Co.",
+      html: `
+        <div style="font-family: system-ui, sans-serif; max-width: 600px; line-height: 1.6;">
+          <h2 style="color: #1C1C1E; border-bottom: 2px solid #C9A96E; padding-bottom: 8px;">
+            Thanks for reaching out, ${escapeHtml(name)}!
+          </h2>
+          <p style="color: #444; margin-top: 16px;">
+            We've received your inquiry and will get back to you within a few hours.
+          </p>
+          ${event_date ? `<p style="color: #444;">You asked about <strong>${formatDate(event_date)}</strong> — we'll confirm availability when we reply.</p>` : ""}
+          <p style="color: #444;">
+            In the meantime, feel free to reply to this email with any questions.
+          </p>
+          <p style="margin-top: 24px; color: #888; font-size: 13px;">— Letterlight Co.</p>
+        </div>
+      `,
+    }).catch((err) => console.error("Confirmation email error:", err));
   } catch (err) {
     console.error("Contact form error:", err);
     return {

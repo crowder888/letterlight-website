@@ -1,5 +1,12 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import BookingForm from "./BookingForm";
+
+export const metadata: Metadata = {
+  title: "Book Your Date — Letterlight Co.",
+  description: "Reserve your wedding or event date for the MR & MRS illuminated marquee letter set. Delivery, setup, and live-controlled LED lighting included.",
+  robots: { index: false },
+};
 
 export const dynamic = "force-dynamic";
 

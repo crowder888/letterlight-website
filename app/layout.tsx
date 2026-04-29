@@ -18,7 +18,7 @@ const cormorant = Cormorant_Garamond({
 export const metadata: Metadata = {
   title: "Letterlight Co. — Marquee Letter Rentals | Indianapolis, IN",
   description:
-    "Premium illuminated marquee letter rentals for weddings and events in Indianapolis and surrounding Indiana. Real-time availability, custom light effects, white glove delivery.",
+    "Premium illuminated marquee letter rentals for weddings and events in Indianapolis and surrounding Indiana. Real-time availability, live-controlled LED lighting, white glove delivery.",
   keywords:
     "marquee letter rental Indianapolis, marquee letter rental Brownsburg, LED letter rental Indiana, wedding letter rental, marquee letters wedding",
   metadataBase: new URL("https://letterlightco.com"),
@@ -28,7 +28,7 @@ export const metadata: Metadata = {
     siteName: "Letterlight Co.",
     title: "Letterlight Co. — Marquee Letter Rentals | Indianapolis, IN",
     description:
-      "Premium illuminated marquee letter rentals for weddings and events in Indianapolis and surrounding Indiana. Real-time availability, custom light effects, white glove delivery.",
+      "Premium illuminated marquee letter rentals for weddings and events in Indianapolis and surrounding Indiana. Real-time availability, live-controlled LED lighting, white glove delivery.",
     images: [
       {
         url: "/gallery-1.png",
@@ -87,7 +87,7 @@ export default function RootLayout({
                 { "@type": "City", name: "Plainfield" },
                 { "@type": "State", name: "Indiana" },
               ],
-              priceRange: "$750–$950",
+              priceRange: "$750",
               image: "https://letterlightco.com/gallery-1.png",
               hasOfferCatalog: {
                 "@type": "OfferCatalog",

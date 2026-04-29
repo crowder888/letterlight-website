@@ -68,6 +68,34 @@ export async function submitBookingRequest(
       console.error("Resend error:", error);
       return { status: "error", message: "Could not send your request. Please try again or email us directly." };
     }
+
+    // Confirmation email to customer
+    await resend.emails.send({
+      from: FROM_EMAIL,
+      to: email,
+      replyTo: TO_EMAIL,
+      subject: "Booking request received — Letterlight Co.",
+      html: `
+        <div style="font-family: system-ui, sans-serif; max-width: 600px; line-height: 1.6;">
+          <h2 style="color: #1C1C1E; border-bottom: 2px solid #C9A96E; padding-bottom: 8px;">
+            We've got your request, ${escapeHtml(name)}!
+          </h2>
+          <p style="color: #444; margin-top: 16px;">
+            Your booking request for the <strong>${escapeHtml(set_name)}</strong> set
+            ${displayDate ? `on <strong>${displayDate}</strong>` : ""} has been received.
+            Your date is tentatively held while we prepare your contract.
+          </p>
+          <p style="color: #444;">
+            We'll send over a contract and deposit invoice within a few hours.
+            Once signed, your date is officially confirmed.
+          </p>
+          <p style="color: #444;">
+            Questions in the meantime? Just reply to this email.
+          </p>
+          <p style="margin-top: 24px; color: #888; font-size: 13px;">— Letterlight Co.</p>
+        </div>
+      `,
+    }).catch((err) => console.error("Confirmation email error:", err));
   } catch (err) {
     console.error("Booking action error:", err);
     return { status: "error", message: "Something went wrong. Please try again or email us directly." };
