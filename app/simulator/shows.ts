@@ -62,7 +62,7 @@ export const SHOWS: ShowDef[] = [
     ],
   },
   {
-    id: "fly_in", label: "Fly In", category: "Essentials", implemented: false,
+    id: "fly_in", label: "Fly In", category: "Essentials", implemented: true,
     params: [
       { key: "hold_time", label: "Hold After Reveal", min: 1, max: 30,  default: 4 },
       { key: "trail_len", label: "Trail Length",      min: 5, max: 80,  default: 30 },
@@ -71,7 +71,7 @@ export const SHOWS: ShowDef[] = [
     ],
   },
   {
-    id: "reading", label: "Reading", category: "Essentials", implemented: false,
+    id: "reading", label: "Reading", category: "Essentials", implemented: true,
     params: [
       { key: "spotlight_width", label: "Spotlight Width", min: 5, max: 60,  default: 18 },
       { key: "ambient",         label: "Ambient Glow",    min: 0, max: 50,  default: 8 },
@@ -80,7 +80,7 @@ export const SHOWS: ShowDef[] = [
     ],
   },
   {
-    id: "camera_flash", label: "Camera Flash", category: "Essentials", implemented: false,
+    id: "camera_flash", label: "Camera Flash", category: "Essentials", implemented: true,
     params: [
       { key: "flash_rate",  label: "Flash Rate",  min: 0, max: 100, default: 50 },
       { key: "burst_size",  label: "Burst Size",  min: 1, max: 4,   default: 1 },
@@ -94,7 +94,7 @@ export const SHOWS: ShowDef[] = [
   { id: "sparkle", label: "Sparkle", category: "Essentials", implemented: true },
   { id: "shimmer", label: "Shimmer", category: "Essentials", implemented: true },
   { id: "twinkle", label: "Twinkle", category: "Essentials", implemented: true },
-  { id: "fairy_dust", label: "Fairy Dust", category: "Essentials", implemented: false },
+  { id: "fairy_dust", label: "Fairy Dust", category: "Essentials", implemented: true },
 
   // ── Waves & Motion ──────────────────────────────────────────────────────
   { id: "wave",     label: "Wave",     category: "Waves & Motion", implemented: true },

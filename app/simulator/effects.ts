@@ -560,9 +560,152 @@ export const effectLetterSwap: EffectFn = (pixel, t, p) => {
   return [clamp255(r), clamp255(g), clamp255(b)];
 };
 
+/**
+ * Fly In — matches shows.py:FlyIn exactly.
+ *
+ *   "Pixels stream in from one side and assemble the full word.
+ *    Once fully revealed, holds briefly, then restarts."
+ *
+ * Per-show params:
+ *   • hold_time  — 1..30 seconds to hold after the reveal completes
+ *   • trail_len  — 5..80 % of axis (length of the bright comet trail)
+ *   • direction  — 0 L→R, 1 R→L, 2 axis-Y first half, 3 axis-Y second half
+ *   • sparkle    — 0..100 % chance of white sparkles near the leading edge
+ *
+ * Cycle tracking is stateless — we just modulo `t` by the cycle total.
+ *
+ * Coordinate note: the controller's coords flip Y (bottom=0, top=1).
+ * Our pixel.ny is top=0/bottom=1.  The translation `1 - controller_y`
+ * cancels out for direction 2 → positions = pixel.ny; direction 3 →
+ * positions = 1 - pixel.ny.
+ */
+export const effectFlyIn: EffectFn = (pixel, t, p) => {
+  const holdTime = paramN(p, "hold_time", 4);
+  const trailLen = paramN(p, "trail_len", 30) / 100;
+  const direction = paramN(p, "direction", 0);
+  const sparkleDensity = paramN(p, "sparkle", 30) / 100;
+
+  const revealTime = Math.max(0.5, 4.0 - p.speed * 3.0);
+  const cycleTotal = revealTime + holdTime;
+  const elapsed = t % cycleTotal;
+  const waveProgress = elapsed < revealTime ? elapsed / revealTime : 1.0;
+
+  // Per-pixel axis position (matches Python's `positions` array)
+  let position: number;
+  if (direction === 0)        position = pixel.nx;             // L → R
+  else if (direction === 1)   position = 1 - pixel.nx;         // R → L
+  else if (direction === 2)   position = pixel.ny;             // top first
+  else                         position = 1 - pixel.ny;         // bottom first
+
+  const wavefront = waveProgress * (1.0 + trailLen);
+  const behind = wavefront - position;
+  const bright = 0.5 + 0.5 * p.intensity;
+
+  // Pixel color (palette gradient by position, or solid)
+  const baseColor =
+    p.usePalette && p.paletteColors.length >= 2
+      ? paletteAt(p.paletteColors, position)
+      : p.color;
+
+  if (behind < 0) {
+    return [0, 0, 0];
+  }
+  if (behind < trailLen) {
+    // In the trail — bright leading edge fading back to base
+    const trailPos = behind / trailLen; // 0=at front, 1=tail end
+    const edgeGlow = (1 - trailPos) * (1 - trailPos);
+    const lit = Math.min(1.5, bright + edgeGlow * 0.8);
+    // Sparkle near the leading edge — deterministic per-pixel-per-frame
+    if (trailPos < 0.3) {
+      const frame = Math.floor(t * 30);
+      const [r1] = frameRand(pixel.gi, frame);
+      if (r1 < sparkleDensity * 0.4) {
+        return [
+          clamp255(255 * p.brightness),
+          clamp255(255 * p.brightness),
+          clamp255(255 * p.brightness),
+        ];
+      }
+    }
+    return applyBrightness(baseColor, lit * p.brightness);
+  }
+  // Fully revealed and held
+  return applyBrightness(baseColor, bright * p.brightness);
+};
+
+/**
+ * Reading — matches shows.py:Reading exactly.
+ *
+ *   "A bright spotlight slowly moves across the word like someone
+ *    reading it.  The rest stays dimly glowing."
+ *
+ * Per-show params:
+ *   • spotlight_width — 5..60 % width of the moving spotlight
+ *   • ambient         — 0..50 % brightness of the rest of the sign
+ *   • direction       — 0 L→R loop, 1 R→L loop, 2 ping-pong
+ *   • spot_color      — the bright reading beam color (default white)
+ */
+export const effectReading: EffectFn = (pixel, t, p) => {
+  const spotlightWidth = paramN(p, "spotlight_width", 18) / 100;
+  const ambient = paramN(p, "ambient", 8) / 100;
+  const direction = paramN(p, "direction", 0);
+  const spotC = paramC(p, "spot_color", [255, 255, 255]);
+
+  const sweepTime = Math.max(0.8, 8.0 - p.speed * 6.5);
+  const sweepRange = 1.0 + 2 * spotlightWidth;
+  const cyclePos = (t / sweepTime) % 1.0;
+
+  let spotX: number;
+  if (direction === 0) {
+    spotX = -spotlightWidth + cyclePos * sweepRange;
+  } else if (direction === 1) {
+    spotX = (1.0 + spotlightWidth) - cyclePos * sweepRange;
+  } else {
+    const ping = (t / sweepTime) % 2.0;
+    spotX = ping < 1.0
+      ? -spotlightWidth + ping * sweepRange
+      : (1.0 + spotlightWidth) - (ping - 1.0) * sweepRange;
+  }
+
+  const x = pixel.nx;
+  const dist = Math.abs(x - spotX);
+  const bright = 0.5 + 0.5 * p.intensity;
+
+  // Base color (ambient layer)
+  const baseColor =
+    p.usePalette && p.paletteColors.length >= 2
+      ? paletteAt(p.paletteColors, x)
+      : p.color;
+
+  if (dist < spotlightWidth) {
+    // Inside the beam — smooth ease-out falloff from center
+    let falloff = 1 - dist / spotlightWidth;
+    falloff = falloff * falloff * (3 - 2 * falloff); // smoothstep
+    const spotLit = falloff * bright;
+    const blend = 1 - ambient * 0.5;
+    const r = baseColor[0] * ambient * bright + spotC[0] * spotLit * blend;
+    const g = baseColor[1] * ambient * bright + spotC[1] * spotLit * blend;
+    const b = baseColor[2] * ambient * bright + spotC[2] * spotLit * blend;
+    return [
+      clamp255(r * p.brightness),
+      clamp255(g * p.brightness),
+      clamp255(b * p.brightness),
+    ];
+  }
+  // Outside — ambient only
+  const a = ambient * bright * p.brightness;
+  return [
+    clamp255(baseColor[0] * a),
+    clamp255(baseColor[1] * a),
+    clamp255(baseColor[2] * a),
+  ];
+};
+
 // ── Registry ──────────────────────────────────────────────────────────────────
 
 import { fireworksEffect } from "./fireworks";
+import { cameraFlashEffect } from "./cameraFlash";
+import { fairyDustEffect } from "./fairyDust";
 
 const PIXEL_EFFECTS: Record<string, EffectFn> = {
   solid:         effectSolid,
@@ -577,11 +720,15 @@ const PIXEL_EFFECTS: Record<string, EffectFn> = {
   letter_colors: effectLetterColors,
   letter_chase:  effectLetterChase,
   letter_swap:   effectLetterSwap,
+  fly_in:        effectFlyIn,
+  reading:       effectReading,
   heartbeat:     effectHeartbeat,
 };
 
 const STATEFUL_EFFECTS: Record<string, StatefulEffect> = {
-  fireworks_xl: fireworksEffect,
+  fireworks_xl:  fireworksEffect,
+  camera_flash:  cameraFlashEffect,
+  fairy_dust:    fairyDustEffect,
 };
 
 /** Resolve a show id to its full effect (pixel or stateful). */
