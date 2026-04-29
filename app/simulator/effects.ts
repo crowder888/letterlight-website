@@ -169,17 +169,36 @@ export const effectSparkle: EffectFn = (pixel, t, p) => {
   return applyBrightness(sparkleColor, sparkleBright * p.brightness);
 };
 
+/**
+ * Wave — matches the operator controller's Wave show
+ * (mrc-marquee-controller/shows.py · class Wave).
+ *
+ *   "Gentle sine wave of brightness rolling bottom-to-top across the shape."
+ *
+ *   • Direction: bottom → top (uses Y coord, flipped so bottom=0 top=1)
+ *   • Multiple wave peaks visible at once (1.5 + 2·intensity cycles)
+ *   • Continuous sine wave of brightness, not a single moving band
+ *   • Palette mode: colors flow vertically with the wave too
+ */
 export const effectWave: EffectFn = (pixel, t, p) => {
-  const speedMul = 0.15 + p.speed * 0.4;
-  const wavePos = (t * speedMul) % 1;
-  const dist = Math.abs(pixel.nx - wavePos);
-  const d = Math.min(dist, 1 - dist);
-  const width = 0.08 + 0.18 * (1 - p.intensity);
-  const inten = Math.max(0, 1 - d / width);
-  const floor = 0.08 + 0.2 * (1 - p.intensity);
-  const lvl = floor + (1 - floor) * inten;
-  const c = activeColor(p, wavePos);
-  return applyBrightness(c, lvl * p.brightness);
+  // Controller's coords system has Y=0 at bottom, Y=1 at top.
+  // Our pixel.ny is Y=0 at top — flip it.
+  const spatial = 1 - pixel.ny;
+
+  const waveSpeed = 0.3 + p.speed * 2.0;
+  const waveCount = 1.5 + p.intensity * 2.0;
+  const phase = spatial * waveCount * 2 * Math.PI - t * waveSpeed * 2 * Math.PI;
+  const wave = (Math.sin(phase) + 1) / 2;
+  const base = 0.15 + 0.15 * p.intensity;
+  const depth = 0.7 * p.intensity;
+  const bright = base + wave * depth;
+
+  if (p.usePalette && p.paletteColors.length >= 2) {
+    const pos = (spatial + t * 0.05) % 1.0;
+    const c = paletteAt(p.paletteColors, pos);
+    return applyBrightness(c, bright * p.brightness);
+  }
+  return applyBrightness(p.color, bright * p.brightness);
 };
 
 export const effectRainbow: EffectFn = (pixel, t, p) => {
