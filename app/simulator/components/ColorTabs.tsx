@@ -83,9 +83,12 @@ export default function ColorTabs({
     }
     setEditingSlot(nextEmpty >= 0 ? nextEmpty : null);
 
-    if (next.every((c) => c !== null)) {
-      onChangePalette({ name: "Custom", colors: next as RGB[] });
-      onChangeMode("palette");
+    // Update the active palette progressively as slots fill — every filled
+    // color goes in immediately so the user sees the effect react.  Stay on
+    // the Custom Mix tab regardless (the tab is the BUILDER, not the result).
+    const filled = next.filter((c): c is RGB => c !== null);
+    if (filled.length >= 2) {
+      onChangePalette({ name: "Custom", colors: filled });
     }
   }
 

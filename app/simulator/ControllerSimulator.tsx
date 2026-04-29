@@ -61,7 +61,9 @@ export default function ControllerSimulator() {
   const params = useMemo(() => ({
     color,
     paletteColors: palette.colors,
-    usePalette: colorMode === "palette",
+    // Both palette and custom modes use palette colors — only "single" uses
+    // the primary color picker
+    usePalette: colorMode === "palette" || colorMode === "custom",
     speed: speed / 100,
     intensity: intensity / 100,
     brightness: brightness / 100,
