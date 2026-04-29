@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 type Status = "idle" | "loading" | "available" | "unavailable" | "error";
 
@@ -13,6 +14,7 @@ export default function AvailabilityChecker({
 }) {
   const [date, setDate] = useState("");
   const [status, setStatus] = useState<Status>("idle");
+  const router = useRouter();
 
   const today = new Date().toISOString().split("T")[0];
 
@@ -68,16 +70,10 @@ export default function AvailabilityChecker({
           </div>
           <button
             type="button"
-            onClick={() => {
-              window.dispatchEvent(
-                new CustomEvent("letterlight:book-date", { detail: { date } })
-              );
-              const form = document.getElementById("inquiry-form");
-              form?.scrollIntoView({ behavior: "smooth", block: "center" });
-            }}
+            onClick={() => router.push(`/book?date=${date}&set=mr-and-mrs`)}
             className="bg-[#C9A96E] text-white text-xs tracking-widest uppercase px-8 py-3 hover:bg-[#E8D5A3] hover:text-[#1C1C1E] transition-colors"
           >
-            Book This Date
+            Book This Date →
           </button>
           <p className={subtextClass}>
             We&apos;ll secure your date and send a contract within a few hours.
