@@ -174,7 +174,7 @@ export const fireworksEffect: StatefulEffect = {
 
     // ── Trail fade: scale the entire buffer down ─────────────────────────
     // ── Background glow floor: enforce min brightness from bg_color ──────
-    const glow = bgGlow * 0.15 * params.intensity * params.brightness;
+    const glow = bgGlow * 0.3 * params.intensity * params.brightness;
     const floorR = bgColor[0] * glow;
     const floorG = bgColor[1] * glow;
     const floorB = bgColor[2] * glow;

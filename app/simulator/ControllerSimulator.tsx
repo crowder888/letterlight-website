@@ -89,7 +89,7 @@ export default function ControllerSimulator() {
     <div className="ll-controller">
       {/* Status bar */}
       <div className="ll-status-bar">
-        <span className="ll-status-logo">MRC MARQUEE</span>
+        <span className="ll-status-logo">LETTERLIGHT MARQUEE</span>
         <div className="ll-status-letters">
           {["M", "R", "&", "M", "R", "S"].map((l, i) => (
             <span key={i} className="ll-status-letter">

@@ -143,7 +143,7 @@ export const shapeEffect: StatefulEffect = {
 
     // ── Background base ───────────────────────────────────────────────
     if (bgGlow > 0) {
-      const glow = bgGlow * 0.15 * params.intensity * params.brightness;
+      const glow = bgGlow * 0.3 * params.intensity * params.brightness;
       const r = bgColor[0] * glow;
       const g = bgColor[1] * glow;
       const b = bgColor[2] * glow;
