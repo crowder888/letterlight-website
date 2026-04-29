@@ -235,8 +235,11 @@ export default function ColorWheel({ initial, open, onConfirm, onCancel, onPrevi
     }
   }
 
-  function handleWheelMove(e: React.PointerEvent<HTMLCanvasElement>, mode: "ring" | "square" | null = dragging) {
-    if (!mode) return;
+  function handleWheelMove(
+    e: React.PointerEvent<HTMLCanvasElement>,
+    mode: "ring" | "square" | "bright" | null = dragging,
+  ) {
+    if (mode !== "ring" && mode !== "square") return;
     const canvas = wheelRef.current;
     if (!canvas) return;
     const pos = getPos(canvas, e);
