@@ -9,7 +9,7 @@ export type ContactState = {
 };
 
 const TO_EMAIL = "mike@mrcwoodproducts.com";
-const FROM_EMAIL = "Letterlight Co. <onboarding@resend.dev>";
+const FROM_EMAIL = "Letterlight Co. <hello@letterlightco.com>";
 
 export async function submitInquiry(
   _prev: ContactState,

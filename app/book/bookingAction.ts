@@ -9,7 +9,7 @@ export type BookingState =
   | { status: "error"; message: string };
 
 const TO_EMAIL = "mike@mrcwoodproducts.com";
-const FROM_EMAIL = "Letterlight Co. <onboarding@resend.dev>";
+const FROM_EMAIL = "Letterlight Co. <hello@letterlightco.com>";
 
 export async function submitBookingRequest(
   _prev: BookingState,
