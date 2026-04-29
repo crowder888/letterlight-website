@@ -37,7 +37,7 @@ export interface ShowDef {
 
 export const SHOWS: ShowDef[] = [
   // ── Essentials ──────────────────────────────────────────────────────────
-  { id: "solid", label: "Solid", category: "Essentials", implemented: true },
+  { id: "solid", label: "Warm Glow", category: "Essentials", implemented: true },
   {
     id: "letter_colors", label: "Letter Colors", category: "Essentials", implemented: true,
     params: [
