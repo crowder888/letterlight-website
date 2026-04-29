@@ -7,7 +7,7 @@
  */
 
 import { useEffect, useState } from "react";
-import { COLOR_PRESETS, PALETTES, type RGB, type Palette } from "../palettes";
+import { PALETTES, type RGB, type Palette } from "../palettes";
 import {
   loadRecentColors, pushRecentColor,
   loadUserPalettes, saveUserPalette, deleteUserPalette,
@@ -148,20 +148,6 @@ export default function ColorTabs({
             </button>
           </div>
 
-          <div className="ll-recent-label">Presets</div>
-          <div className="ll-color-row">
-            {COLOR_PRESETS.map((p) => (
-              <button
-                key={p.name}
-                type="button"
-                className={`ll-color-swatch ${colorEq(color, p.rgb) ? "active" : ""}`}
-                style={{ background: rgbCss(p.rgb) }}
-                onClick={() => pickColor(p.rgb)}
-                title={p.name}
-              />
-            ))}
-          </div>
-
           {recent.length > 0 && (
             <>
               <div className="ll-recent-label">Recent</div>
@@ -170,7 +156,7 @@ export default function ColorTabs({
                   <button
                     key={i}
                     type="button"
-                    className={`ll-color-swatch ll-color-swatch-sm ${colorEq(color, c) ? "active" : ""}`}
+                    className={`ll-color-swatch ${colorEq(color, c) ? "active" : ""}`}
                     style={{ background: rgbCss(c) }}
                     onClick={() => pickColor(c)}
                   />
