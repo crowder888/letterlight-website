@@ -12,7 +12,7 @@
  * Unimplemented shows fall back to `effectSolid` so the canvas never blanks.
  */
 
-import type { NormalizedPixel } from "./pixelLayout";
+import { TOTAL_LEDS, type NormalizedPixel } from "./pixelLayout";
 import type { RGB } from "./palettes";
 
 export interface EffectParams {
@@ -113,29 +113,60 @@ export const effectPulse: EffectFn = (_pixel, t, p) => {
   return applyBrightness(activeColor(p), lvl * p.brightness);
 };
 
-const sparkleState = new Float32Array(2000);
+/**
+ * Sparkle — matches the operator controller's Sparkle show
+ * (mrc-marquee-controller/shows.py · class Sparkle).
+ *
+ *   • Base layer: every LED at ~15–40% of the chosen color
+ *   • Each "render frame" (~30/sec) a fraction of LEDs flash brighter:
+ *       count   = TOTAL_LEDS * (0.005 + speed * 0.04)
+ *       bright  = (0.7 + 0.3·rand) * (0.5 + 0.5·intensity) * 1.3
+ *   • Sparkles inherit the chosen color (or a random palette pick) —
+ *     they are NOT pure white.
+ *   • No fade trail — each sparkle exists for one frame only.
+ *
+ * We run the sparkle refresh at 30 Hz independent of actual rAF rate so
+ * the visual cadence matches the e131 update rate of the live rig.
+ */
+const SPARKLE_FPS = 30;
+
+// Cheap per-pixel per-frame deterministic random.  Two independent draws
+// from one seed give us "is this pixel a sparkle?" + "how bright?".
+function frameRand(gi: number, frame: number): [number, number] {
+  let s = (gi * 2654435761 + frame * 1597) >>> 0;
+  s ^= s << 13; s >>>= 0;
+  s ^= s >>> 17;
+  s ^= s << 5;  s >>>= 0;
+  const r1 = (s & 0xffff) / 0xffff;
+  s = (s * 48271) >>> 0;
+  const r2 = (s & 0xffff) / 0xffff;
+  return [r1, r2];
+}
+
 export const effectSparkle: EffectFn = (pixel, t, p) => {
-  const idx = pixel.gi % sparkleState.length;
-  const speedMul = 0.5 + p.speed * 4;
-  const bucket = Math.floor(t * speedMul * 6);
-  const seed = (pixel.gi * 1664525 + bucket * 1013904223) & 0x7fffffff;
-  const flashProb = 0.02 + p.intensity * 0.1;
-  let flash = 0;
-  if ((seed / 0x7fffffff) < flashProb) {
-    const flashStart = bucket / (speedMul * 6);
-    const elapsed = t - flashStart;
-    flash = Math.max(0, 1 - elapsed * speedMul * 4);
+  const frame = Math.floor(t * SPARKLE_FPS);
+  const [r1, r2] = frameRand(pixel.gi, frame);
+  const sparkleProb = 0.005 + p.speed * 0.04;
+  const isSparkle = r1 < sparkleProb;
+
+  const baseLevel = (0.15 + 0.25 * p.intensity) * p.brightness;
+
+  if (!isSparkle) {
+    // Base layer — palette gradient across the sign, or solid single color
+    const baseColor =
+      p.usePalette && p.paletteColors.length >= 2
+        ? paletteAt(p.paletteColors, pixel.gi / TOTAL_LEDS)
+        : p.color;
+    return applyBrightness(baseColor, baseLevel);
   }
-  sparkleState[idx] = Math.max(sparkleState[idx] * 0.86, flash);
-  const f = sparkleState[idx];
-  const base = applyBrightness(activeColor(p), 0.12 * p.brightness);
-  const peak: RGB = [
-    clamp255(255 * p.brightness),
-    clamp255(255 * p.brightness),
-    clamp255(255 * p.brightness),
-  ];
-  const out = lerpColor(base, peak, f);
-  return [clamp255(out[0]), clamp255(out[1]), clamp255(out[2])];
+
+  // Sparkle — brighter punch on the same color (or random palette pick)
+  const sparkleBright = (0.7 + 0.3 * r2) * (0.5 + 0.5 * p.intensity) * 1.3;
+  const sparkleColor =
+    p.usePalette && p.paletteColors.length >= 2
+      ? p.paletteColors[Math.floor(r2 * p.paletteColors.length) % p.paletteColors.length]
+      : p.color;
+  return applyBrightness(sparkleColor, sparkleBright * p.brightness);
 };
 
 export const effectWave: EffectFn = (pixel, t, p) => {
