@@ -86,8 +86,17 @@
 }
 
 /* ── Live preview ───────────────────────────────────────────────────────── */
+/* Sticky so the canvas stays visible while the user scrolls through
+ * shows, colors, and sliders below.  Sits below the status bar. */
 .ll-preview-card {
   padding: 12px;
+  position: sticky;
+  /* Status bar is ~48px tall — leave a small visual gap */
+  top: 52px;
+  z-index: 40;
+  /* Solid background so scrolling controls don't bleed through */
+  background: #0e0e1e;
+  box-shadow: 0 8px 20px -4px rgba(0, 0, 0, 0.55);
 }
 
 .ll-preview-header {
