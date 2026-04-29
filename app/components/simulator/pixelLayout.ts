@@ -10,10 +10,15 @@
  * Each letter has its own local x/y origin.  We place letters side-by-side
  * with a fixed gap, then normalize the whole assembly so that:
  *   nx ∈ [0, 1]   (0 = leftmost LED, 1 = rightmost LED)
- *   ny ∈ [0, 1]   (0 = topmost LED, 1 = bottommost LED)
+ *   ny ∈ [0, 1]   (0 = topmost LED of tallest letter, 1 = shared bottom baseline)
  *
- * Because S is the tallest letter (y range ~4032 units) all letters use that
- * same scale so they render at consistent physical proportions.
+ * Letters are BOTTOM-ALIGNED — they all share a common floor (ny = 1),
+ * matching how the physical letters stand side-by-side on a surface.
+ * S is the tallest letter (~4032 units) so its top reaches ny = 0;
+ * shorter letters (M, R at ~3024 units) start at ny ≈ 0.25.
+ *
+ * The sign's natural aspect ratio (~4.57:1) is exported so the canvas
+ * can match real proportions and avoid distorting letter shapes.
  */
 
 import mData from "@/app/data/pixels/M.json";
@@ -74,24 +79,26 @@ function buildLayout(): NormalizedPixel[] {
     cursor += letterWidths[i] + LETTER_GAP;
   }
 
-  // 4. Find the tallest letter's y range (for uniform vertical scale)
-  //    All letters are top-aligned (minY → 0)
+  // 4. Tallest letter height = vertical scale reference
   const maxHeight = Math.max(...bounds.map((b) => b.maxY - b.minY));
 
   // 5. Total sign width
   const totalWidth = cursor - LETTER_GAP; // subtract trailing gap
 
-  // 6. Assemble normalized pixels
+  // 6. Assemble normalized pixels — BOTTOM-ALIGNED
+  //    ny = 1 is the shared floor; shorter letters' tops start below ny = 0
   const result: NormalizedPixel[] = [];
   let gi = 0;
 
   for (let li = 0; li < LETTER_DATA.length; li++) {
     const ld = LETTER_DATA[li];
     const b = bounds[li];
+    const letterHeight = b.maxY - b.minY;
 
     for (const p of ld.pixels) {
       const absX = p.x + xOffsets[li];
-      const absY = p.y - b.minY; // top-align each letter
+      // Shift each letter so its bottom aligns with maxHeight
+      const absY = maxHeight - letterHeight + (p.y - b.minY);
 
       result.push({
         nx: absX / totalWidth,
@@ -108,3 +115,10 @@ function buildLayout(): NormalizedPixel[] {
 // Build once and export — imported by the canvas component
 export const PIXEL_LAYOUT: NormalizedPixel[] = buildLayout();
 export const TOTAL_LEDS = PIXEL_LAYOUT.length;
+
+/**
+ * Natural aspect ratio of the full sign in physical units.
+ * Use this to size the canvas so letter shapes aren't distorted.
+ *   canvas.height = Math.floor(canvas.width / SIGN_ASPECT_RATIO)
+ */
+export const SIGN_ASPECT_RATIO = 4.57; // totalWidth / maxHeight ≈ 18415 / 4032

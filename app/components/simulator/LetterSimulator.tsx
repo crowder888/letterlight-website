@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
-import { PIXEL_LAYOUT } from "./pixelLayout";
+import { PIXEL_LAYOUT, SIGN_ASPECT_RATIO } from "./pixelLayout";
 import { EFFECTS, type EffectParams, type RGBTuple } from "./effects";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -116,9 +116,9 @@ export default function LetterSimulator() {
     const ro = new ResizeObserver((entries) => {
       const entry = entries[0];
       const { width } = entry.contentRect;
-      // Aspect ratio: sign is roughly 6:1 wide. We render at 3:1 for visual comfort.
+      // Use the sign's natural aspect ratio so letter shapes aren't distorted
       canvas.width = Math.floor(width);
-      canvas.height = Math.floor(width / 3.5);
+      canvas.height = Math.floor(width / SIGN_ASPECT_RATIO);
     });
     ro.observe(container);
 
