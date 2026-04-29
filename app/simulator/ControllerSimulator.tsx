@@ -100,27 +100,27 @@ export default function ControllerSimulator() {
         </div>
       </div>
 
-      {/* Live preview */}
+      {/* Live preview — sticky.  Audio-reactive note lives INSIDE this card
+       *  so it scrolls with the preview when an audio show is active. */}
       <div className="ll-card ll-preview-card">
         <div className="ll-preview-header">
           <span className="ll-section-label">Live Preview</span>
           <span className="ll-preview-show-name">{showLabel}</span>
         </div>
         <LetterCanvas showId={activeShow} params={params} />
-      </div>
 
-      {/* Audio-reactive disclaimer — only shown when an audio show is active */}
-      {isAudioReactive && (
-        <div className="ll-audio-note">
-          <span className="ll-audio-note-icon">🎤</span>
-          <span>
-            <strong>Audio-reactive demo.</strong>{" "}
-            At your event, this effect responds to your DJ&apos;s music in real
-            time through a microphone we plug into the controller.  Here, you&apos;re
-            seeing a synthetic preview so you can get a feel for how it moves.
-          </span>
-        </div>
-      )}
+        {isAudioReactive && (
+          <div className="ll-audio-note">
+            <span className="ll-audio-note-icon">🎤</span>
+            <span>
+              <strong>Audio-reactive demo.</strong>{" "}
+              At your event, this effect responds to your DJ&apos;s music in real
+              time through a microphone we plug into the controller.  Here, you&apos;re
+              seeing a synthetic preview so you can get a feel for how it moves.
+            </span>
+          </div>
+        )}
+      </div>
 
       {/* Show grid */}
       <ShowGrid activeShow={activeShow} onSelectShow={setActiveShow} />
