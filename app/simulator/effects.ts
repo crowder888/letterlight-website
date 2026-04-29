@@ -265,18 +265,55 @@ export const effectRainbow: EffectFn = (pixel, t, p) => {
   return applyBrightness(hslToRgb(hue, sat, 0.5), p.brightness);
 };
 
-const LETTER_COLOR_HUES = [0.0, 0.1, 0.25, 0.55, 0.7, 0.85];
+/**
+ * Letter Colors — matches shows.py:LetterColors exactly.
+ *
+ *   "Each letter gets its own color from the active palette.  Repeats
+ *    palette colors when there are more letters than colors."
+ *
+ * If no palette is active (single-color mode), all letters get the
+ * primary color — same as the rig.  Tip: switch to Palettes or build
+ * a Custom Mix to see different colors per letter.
+ *
+ * Per-show params:
+ *   • pulse         — 0..100 % gentle global breathe (0 = static)
+ *   • sparkle       — 0..100 % white-flash density on top of base
+ *   • sparkle_color — RGB for the flashes (default white)
+ */
 export const effectLetterColors: EffectFn = (pixel, t, p) => {
-  const speedMul = 0.3 + p.speed * 1.5;
-  let base: RGB;
-  if (p.usePalette && p.paletteColors.length) {
-    base = p.paletteColors[pixel.li % p.paletteColors.length];
-  } else {
-    const hue = LETTER_COLOR_HUES[pixel.li % LETTER_COLOR_HUES.length];
-    base = hslToRgb(hue, 1, 0.5);
+  let scale = 0.3 + 0.7 * p.intensity;
+
+  // Optional gentle pulse
+  const pulseAmount = paramN(p, "pulse", 0) / 100;
+  if (pulseAmount > 0) {
+    const cycle = 2.0 + (1.0 - p.speed) * 4.0;
+    const phase = (t % cycle) / cycle;
+    const wave = (Math.sin(phase * 2 * Math.PI - Math.PI / 2) + 1) / 2; // 0→1→0
+    const pulseFactor = 1.0 - pulseAmount * 0.7 * (1.0 - wave);
+    scale *= pulseFactor;
   }
-  const breathe = 0.4 + 0.6 * (0.5 + 0.5 * Math.sin(t * speedMul + pixel.li));
-  return applyBrightness(base, breathe * p.brightness);
+
+  // Sparkle layer — per-pixel, per-frame deterministic random
+  const sparkleDensity = paramN(p, "sparkle", 0) / 100;
+  if (sparkleDensity > 0) {
+    // Per-pixel sparkle probability matches Python:
+    //   num_sparks/n = (0.005 + density·0.12) · (0.3 + speed·0.7)
+    const sparkleProb = (0.005 + sparkleDensity * 0.12) * (0.3 + p.speed * 0.7);
+    const frame = Math.floor(t * 30);
+    const [r1] = frameRand(pixel.gi, frame);
+    if (r1 < sparkleProb) {
+      const sc = paramC(p, "sparkle_color", [255, 255, 255]);
+      const sb = (0.7 + 0.3 * p.intensity) * p.brightness;
+      return [clamp255(sc[0] * sb), clamp255(sc[1] * sb), clamp255(sc[2] * sb)];
+    }
+  }
+
+  // Base layer: palette[li % len] if palette active, else single color
+  const base: RGB =
+    p.usePalette && p.paletteColors.length >= 2
+      ? p.paletteColors[pixel.li % p.paletteColors.length]
+      : p.color;
+  return applyBrightness(base, scale * p.brightness);
 };
 
 /**
