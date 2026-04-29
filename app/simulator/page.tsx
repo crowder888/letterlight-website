@@ -6,7 +6,7 @@ import "./simulator.css";
 export const metadata: Metadata = {
   title: "Live Controller Preview — Letterlight Co.",
   description:
-    "Try the actual MRC Marquee controller our team uses at your event. Tap shows, pick colors, and adjust the sliders to design your wedding lighting in real time.",
+    "Try the actual MRC Marquee controller you'll operate at your event. Tap shows, pick colors, and adjust the sliders to design your wedding lighting in real time.",
   robots: { index: false },
 };
 
@@ -40,8 +40,15 @@ export default function SimulatorPage() {
           Design Your Lighting
         </h1>
         <p className="text-white/50 text-sm leading-relaxed max-w-lg mx-auto">
-          This is the actual controller we operate at your event — same shows, same
-          colors, same sliders.  Tap around and design the look for your night.
+          This is the actual controller you&apos;ll operate at your event — same
+          shows, same colors, same sliders.  Tap around and design the look for
+          your night.
+        </p>
+        <p className="text-white/30 text-xs leading-relaxed max-w-lg mx-auto mt-4">
+          A note on color: the effects shown here are accurate, but real LEDs in
+          real venue lighting will look different than your screen.  Treat the
+          previews as a guide, not an exact match — we&apos;ll fine-tune your
+          colors in person at setup.
         </p>
       </div>
 

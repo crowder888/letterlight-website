@@ -137,8 +137,15 @@ export default function ControllerSimulator() {
       />
 
       <p className="ll-footer-note">
-        This is a live preview of the actual controller our team operates at your
-        event.  Every effect, color, and slider here matches what we tap on the tablet.
+        This is a live preview of the actual controller you&apos;ll operate at
+        your event.  Every effect, color, and slider here matches what you&apos;ll
+        tap on the tablet on the night of.
+      </p>
+      <p className="ll-footer-note ll-footer-disclaimer">
+        Note: real LEDs in your venue&apos;s ambient lighting will look different
+        than your screen — colors, glow, and brightness all shift in person.
+        Use this preview as a design guide; we&apos;ll dial in the exact look
+        with you at setup.
       </p>
     </div>
   );

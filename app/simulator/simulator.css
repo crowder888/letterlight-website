@@ -718,6 +718,14 @@
   line-height: 1.5;
 }
 
+.ll-footer-disclaimer {
+  font-size: 10px;
+  color: #3a3a50;
+  padding-top: 10px;
+  font-style: normal;
+  letter-spacing: 0.2px;
+}
+
 /* ── Wider screens (tablet/desktop) ─────────────────────────────────────── */
 @media (min-width: 700px) {
   .ll-card {
