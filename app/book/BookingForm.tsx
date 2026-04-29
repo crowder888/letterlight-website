@@ -83,7 +83,7 @@ export default function BookingForm({
       <SubmitButton />
 
       <p className="text-white/30 text-xs text-center leading-relaxed">
-        No payment required now. Mike will send a contract and deposit invoice within a few hours.
+        No payment required now. We&apos;ll send a contract and deposit invoice within a few hours.
       </p>
     </form>
   );

@@ -13,7 +13,7 @@ const SETS: Record<string, {
     price: 750,
     includes: [
       "6 illuminated letters",
-      "Custom light effect",
+      "Professionally operated light show",
       "Delivery & setup within 25 mi of Brownsburg",
       "Evening rental",
       "Teardown included",
@@ -115,7 +115,7 @@ export default async function BookPage({
 
           <div className="bg-white/5 border border-white/10 p-5">
             <p className="text-white/40 text-xs leading-relaxed">
-              Your date is tentatively held once we receive your request. Mike will
+              Your date is tentatively held once we receive your request. We&apos;ll
               send a contract and deposit invoice within a few hours — the booking
               is confirmed upon signing.
             </p>
