@@ -86,6 +86,7 @@ export default function ControllerSimulator() {
   const show = getShow(activeShow);
   const showLabel = show?.label ?? "Solid";
   const isAudioReactive = show?.category === "Audio Reactive";
+  const hasShowParams = (show?.params?.length ?? 0) > 0;
 
   return (
     <div className="ll-controller">
@@ -119,6 +120,16 @@ export default function ControllerSimulator() {
               At your event, this effect responds to your DJ&apos;s music in real
               time through a microphone we plug into the controller.  Here, you&apos;re
               seeing a synthetic preview so you can get a feel for how it moves.
+            </span>
+          </div>
+        )}
+
+        {hasShowParams && (
+          <div className="ll-audio-note ll-params-hint">
+            <span className="ll-audio-note-icon">⚙️</span>
+            <span>
+              <strong>{showLabel} has its own settings.</strong>{" "}
+              Scroll down past the universal sliders to fine-tune this effect.
             </span>
           </div>
         )}
