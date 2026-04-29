@@ -32,6 +32,37 @@ export interface EffectParams {
 
 export type EffectFn = (pixel: NormalizedPixel, t: number, params: EffectParams) => RGB;
 
+/**
+ * Stateful effects (fireworks, meteors, fire, etc.) need to maintain
+ * cross-frame state (particles, trails) and read/write the whole pixel
+ * buffer at once.
+ *
+ * `step` mutates `buffer` in place — buffer is a Float32Array of length
+ * TOTAL_LEDS · 3 holding RGB triples [0..255] for each LED.  `t` is
+ * elapsed seconds since the page loaded; `dt` is seconds since last frame
+ * (capped at ~0.1s by the canvas).
+ *
+ * `reset` is called when the user switches TO this effect, so any
+ * leftover state from the last activation is cleared.
+ */
+export interface StatefulEffect {
+  type: "stateful";
+  reset: () => void;
+  step: (
+    buffer: Float32Array,
+    t: number,
+    dt: number,
+    params: EffectParams
+  ) => void;
+}
+
+export interface PixelEffect {
+  type: "pixel";
+  fn: EffectFn;
+}
+
+export type Effect = PixelEffect | StatefulEffect;
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 function clamp255(v: number): number {
@@ -399,7 +430,9 @@ export const effectHeartbeat: EffectFn = (pixel, t, p) => {
 
 // ── Registry ──────────────────────────────────────────────────────────────────
 
-export const EFFECT_FNS: Record<string, EffectFn> = {
+import { fireworksEffect } from "./fireworks";
+
+const PIXEL_EFFECTS: Record<string, EffectFn> = {
   solid:         effectSolid,
   breathe:       effectBreathe,
   pulse:         effectPulse,
@@ -413,7 +446,16 @@ export const EFFECT_FNS: Record<string, EffectFn> = {
   heartbeat:     effectHeartbeat,
 };
 
-/** Resolve a show id to its effect function (falls back to solid). */
-export function effectFor(showId: string): EffectFn {
-  return EFFECT_FNS[showId] ?? effectSolid;
+const STATEFUL_EFFECTS: Record<string, StatefulEffect> = {
+  fireworks_xl: fireworksEffect,
+};
+
+/** Resolve a show id to its full effect (pixel or stateful). */
+export function effectFor(showId: string): Effect {
+  if (STATEFUL_EFFECTS[showId]) return STATEFUL_EFFECTS[showId];
+  const fn = PIXEL_EFFECTS[showId] ?? effectSolid;
+  return { type: "pixel", fn };
 }
+
+/** Backward-compat — kept so callers that only need the pixel-fn flavor work. */
+export const EFFECT_FNS = PIXEL_EFFECTS;

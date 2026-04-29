@@ -34,6 +34,10 @@ export interface NormalizedPixel {
   nx: number;
   /** Normalized y position in [0, 1] across the full sign */
   ny: number;
+  /** Local x within this letter [0, 1] (0 = letter's leftmost LED) */
+  lnx: number;
+  /** Local y within this letter [0, 1] (0 = letter's topmost LED) */
+  lny: number;
   /** Letter index: 0=M, 1=R, 2=&, 3=M, 4=R, 5=S */
   li: number;
   /** Global LED index across all letters */
@@ -92,6 +96,8 @@ function buildLayout(): NormalizedPixel[] {
   for (let li = 0; li < LETTER_DATA.length; li++) {
     const ld = LETTER_DATA[li];
     const b = bounds[li];
+    const lw = Math.max(1e-6, b.maxX - b.minX);
+    const lh = Math.max(1e-6, b.maxY - b.minY);
 
     for (const p of ld.pixels) {
       const absX = p.x + xOffsets[li];
@@ -100,6 +106,8 @@ function buildLayout(): NormalizedPixel[] {
       result.push({
         nx: absX / totalWidth,
         ny: absY / maxHeight,
+        lnx: (p.x - b.minX) / lw,
+        lny: (p.y - b.minY) / lh,
         li,
         gi: gi++,
       });

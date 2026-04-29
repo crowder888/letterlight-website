@@ -48,7 +48,7 @@ export const SHOWS: ShowDef[] = [
 
   // ── 2D Effects ──────────────────────────────────────────────────────────
   { id: "fire",           label: "Fire",          category: "2D Effects", implemented: false },
-  { id: "fireworks_xl",   label: "Fireworks",     category: "2D Effects", implemented: false },
+  { id: "fireworks_xl",   label: "Fireworks",     category: "2D Effects", implemented: true },
   { id: "meteors",        label: "Meteors",       category: "2D Effects", implemented: false },
   { id: "snowflakes",     label: "Snowflakes",    category: "2D Effects", implemented: false },
   { id: "shockwave",      label: "Shockwave",     category: "2D Effects", implemented: false },
