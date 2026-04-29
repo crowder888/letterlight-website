@@ -85,20 +85,17 @@ function buildLayout(): NormalizedPixel[] {
   // 5. Total sign width
   const totalWidth = cursor - LETTER_GAP; // subtract trailing gap
 
-  // 6. Assemble normalized pixels — BOTTOM-ALIGNED
-  //    ny = 1 is the shared floor; shorter letters' tops start below ny = 0
+  // 6. Assemble normalized pixels — top-aligned
   const result: NormalizedPixel[] = [];
   let gi = 0;
 
   for (let li = 0; li < LETTER_DATA.length; li++) {
     const ld = LETTER_DATA[li];
     const b = bounds[li];
-    const letterHeight = b.maxY - b.minY;
 
     for (const p of ld.pixels) {
       const absX = p.x + xOffsets[li];
-      // Shift each letter so its bottom aligns with maxHeight
-      const absY = maxHeight - letterHeight + (p.y - b.minY);
+      const absY = p.y - b.minY;
 
       result.push({
         nx: absX / totalWidth,
