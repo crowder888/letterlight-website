@@ -1,7 +1,12 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Cormorant_Garamond, Inter } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
+
+export const viewport: Viewport = {
+  // Letterlight gold — affects mobile browser chrome (address bar, etc.)
+  themeColor: "#C9A96E",
+};
 
 const inter = Inter({
   variable: "--font-inter",
