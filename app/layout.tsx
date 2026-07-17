@@ -93,7 +93,7 @@ export default function RootLayout({
                 { "@type": "City", name: "Plainfield" },
                 { "@type": "State", name: "Indiana" },
               ],
-              priceRange: "$750",
+              priceRange: "$600",
               image: "https://letterlightco.com/gallery-1.png",
               hasOfferCatalog: {
                 "@type": "OfferCatalog",
@@ -107,7 +107,7 @@ export default function RootLayout({
                       description:
                         "Six illuminated LED marquee letters spelling MR & MRS. Includes delivery, setup, custom light effects, and teardown within 25 miles of Brownsburg, IN.",
                     },
-                    price: "750",
+                    price: "600",
                     priceCurrency: "USD",
                   },
                 ],

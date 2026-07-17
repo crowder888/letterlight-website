@@ -17,7 +17,7 @@ const SETS: Record<string, {
 }> = {
   "mr-and-mrs": {
     name: "MR & MRS",
-    price: 750,
+    price: 600,
     includes: [
       "6 illuminated letters",
       "Live-controlled LED lighting",

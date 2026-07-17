@@ -276,7 +276,7 @@ export default function Home() {
               </h3>
               <div className="flex items-baseline gap-2">
                 <span className="font-display text-5xl text-[#1C1C1E] font-light">
-                  $750
+                  $600
                 </span>
               </div>
               <p className="text-[#1C1C1E]/50 text-xs tracking-widest uppercase">
